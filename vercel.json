@@ -1,12 +1,9 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "version": 2,
+  "builds": [
+    { "src": "public/index.html", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/public/index.html" }
+  ]
 }
-```
-
-**Bước 3:** Commit xong
-
-**Bước 4:** Xóa toàn bộ thư mục `src/` và `package.json` — chỉ giữ lại:
-```
-public/
-  └── index.html  ← thay bằng file trinityx.html đã build sẵn
-vercel.json
