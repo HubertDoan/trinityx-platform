@@ -1,6 +1,2609 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TrinityX — Sáng tạo công nghệ phục vụ cuộc sống</title>
+  <meta name="description" content="TrinityX là hệ sinh thái giáo dục công nghệ — nơi học sinh làm ra sản phẩm thật, bán được, kiếm thu nhập thật."/>
+  <!-- React + Babel CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#0a0f0a; }
+    #root { min-height:100vh; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
 
+// ─── MOCK DATA ────────────────────────────────────────────────────────────────
+const MOCK_USERS = {
+  "ph001": { id:"ph001", role:"parent", name:"Nguyễn Văn An", email:"an@email.com", password:"123456",
+    childCode:"hs001", phone:"0901234567", joined:"26/01/2026", txpPoints:120, centerCode:"TRX-HN02",
+    fund:{ balance:850000, history:[
+      {id:1, type:"Thu", desc:"Đóng quỹ tháng 3/2026", amount:200000, date:"01/03/2026"},
+      {id:2, type:"Chi", desc:"Vật tư sự kiện Free Tech Day", amount:150000, date:"08/03/2026"},
+      {id:3, type:"Thu", desc:"Tài trợ sự kiện Maker Battle", amount:500000, date:"10/03/2026"},
+      {id:4, type:"Chi", desc:"In ấn chứng nhận học sinh", amount:50000, date:"12/03/2026"},
+    ]},
+    notifications:[
+      {id:1, msg:"Con bạn vừa hoàn thành sản phẩm LED Matrix!", time:"2 giờ trước", read:false},
+      {id:2, msg:"Sự kiện Free Tech Day cuối tuần này tại TrinityX Đông Anh", time:"1 ngày trước", read:false},
+      {id:3, msg:"Học phí tháng 3/2026 đã được xác nhận", time:"3 ngày trước", read:true},
+    ]
+  },
+  "hs001": { id:"hs001", role:"student", name:"Nguyễn Minh Khôi", email:"khoi@email.com", password:"123456",
+    parentCode:"ph001", grade:"Lớp 7", level:"Creator", school:"THCS Nguyễn Trãi",
+    txpPoints:380, productsCreated:3, productsSold:1, eventsJoined:4,
+    joined:"01/02/2026", center:"TrinityX Đông Anh", centerCode:"TRX-HN02",
+    userCode:"TRX-STU-001",
+    progress:{ starter:100, creator:45, innovator:0 },
+    group:{ name:"Nhóm Maker #3", members:["Nguyễn Minh Khôi","Trần Bảo Long","Lê Hà Anh"], role:"Leader" },
+    competitions:[
+      {id:1, name:"Maker Battle Day tháng 3", level:"Trung tâm", date:"15/03/2026", rank:2, points:80, status:"Đã hoàn thành"},
+      {id:2, name:"TrinityX City Cup Q1", level:"Cụm tỉnh", date:"28/03/2026", rank:null, points:0, status:"Sắp diễn ra"},
+    ],
+    products:[
+      {id:1, name:"Đèn LED Ma Trận 8x8", status:"Đã bán", price:"250.000đ", revenue:175000, date:"20/02/2026", qr:"QR-TXP-001"},
+      {id:2, name:"Hệ thống tưới cây tự động", status:"Trưng bày", price:"350.000đ", revenue:0, date:"01/03/2026", qr:"QR-TXP-002"},
+      {id:3, name:"Cảm biến nhiệt độ WiFi", status:"Đang hoàn thiện", price:"—", revenue:0, date:"—", qr:"QR-TXP-003"},
+    ],
+    schedule:[
+      {day:"Thứ 3", time:"17:00–19:00", subject:"Lập trình Arduino nâng cao", room:"Lab 2"},
+      {day:"Thứ 7", time:"08:00–11:00", subject:"Free Tech Day – Sự kiện cuối tuần", room:"Sảnh chính"},
+    ],
+    notifications:[
+      {id:1, msg:"Sản phẩm LED Ma Trận của bạn đã được bán! Thu nhập: 175.000đ", time:"2 giờ trước", read:false},
+      {id:2, msg:"Bạn đã đạt 380 TXP Points – sắp lên cấp Innovator!", time:"1 ngày trước", read:false},
+      {id:3, msg:"Maker Battle Day ngày 15/03 – Hãy đăng ký tham dự!", time:"2 ngày trước", read:true},
+    ]
+  },
+  "admin001": { id:"admin001", role:"admin", name:"PGS.TS. Doãn Ngọc Hải", email:"admin@trinityx.net", password:"admin123",
+    title:"Admin Hệ thống · Chủ sở hữu mô hình TrinityX",
+    notifications:[
+      {id:1,msg:"Nguyễn Hoàng Nam (CTV) vừa đăng ký — chờ phê duyệt",time:"30 phút trước",read:false},
+      {id:2,msg:"Trần Thị Bích (Phụ huynh TN) vừa đăng ký",time:"2 giờ trước",read:false},
+    ]
+  },
+  "director001": { id:"director001", role:"director", name:"Trần Thị Ngọc Trâm", email:"tram.hq@trinityx.net", password:"director123",
+    centerCode:"TRX-HN01", center:"TrinityX HQ – Hapu", userCode:"TRX-DIR-001", phone:"0912000001", joined:"01/01/2026",
+    title:"Giám đốc Trung tâm TrinityX HQ (Hapu)",
+    notifications:[
+      {id:1,msg:"Báo cáo doanh thu tháng 2 đã sẵn sàng",time:"1 ngày trước",read:false},
+      {id:2,msg:"2 đăng ký nhân viên mới chờ phê duyệt",time:"3 giờ trước",read:false},
+    ]
+  },
+  "director002": { id:"director002", role:"director", name:"Lưu Tuấn Khanh", email:"khanh.donganh@trinityx.net", password:"director123",
+    centerCode:"TRX-HN02", center:"TrinityX Chi nhánh Đông Anh", userCode:"TRX-DIR-002", phone:"0912000002", joined:"01/02/2026",
+    title:"Giám đốc Chi nhánh TrinityX Đông Anh",
+    notifications:[
+      {id:1,msg:"Lớp Starter tháng 4 đã đủ học sinh",time:"2 giờ trước",read:false},
+    ]
+  },
+  "staff001": { id:"staff001", role:"staff", staffRole:"admin_staff", name:"Nguyễn Thị Hương", email:"huong.hc@trinityx.net", password:"staff123",
+    centerCode:"TRX-HN01", center:"TrinityX HQ – Hapu", userCode:"TRX-HC-001", phone:"0912000003", joined:"15/01/2026",
+    title:"Nhân viên Hành chính",
+    notifications:[{id:1,msg:"Có 3 hồ sơ học sinh cần xử lý",time:"1 giờ trước",read:false}]
+  },
+  "staff002": { id:"staff002", role:"staff", staffRole:"tech_staff", name:"Phạm Văn Đức", email:"duc.kt@trinityx.net", password:"staff123",
+    centerCode:"TRX-HN01", center:"TrinityX HQ – Hapu", userCode:"TRX-KT-001", phone:"0912000004", joined:"15/01/2026",
+    title:"Nhân viên Kỹ thuật",
+    notifications:[{id:1,msg:"Thiết bị Lab 2 cần bảo trì",time:"2 giờ trước",read:false}]
+  },
+  "staff003": { id:"staff003", role:"staff", staffRole:"sales_staff", name:"Lê Thị Mai", email:"mai.bh@trinityx.net", password:"staff123",
+    centerCode:"TRX-HN01", center:"TrinityX HQ – Hapu", userCode:"TRX-BH-001", phone:"0912000005", joined:"01/02/2026",
+    title:"Nhân viên Bán hàng",
+    notifications:[{id:1,msg:"Đơn hàng mới từ TrinityX Store",time:"30 phút trước",read:false}]
+  },
+  "staff004": { id:"staff004", role:"staff", staffRole:"warehouse_staff", name:"Trần Minh Quân", email:"quan.kho@trinityx.net", password:"staff123",
+    centerCode:"TRX-HN02", center:"TrinityX Chi nhánh Đông Anh", userCode:"TRX-KHO-001", phone:"0912000006", joined:"01/02/2026",
+    title:"Quản lý Kho",
+    notifications:[{id:1,msg:"Vật tư sự kiện cần kiểm kê",time:"1 ngày trước",read:false}]
+  },
+  "mentor001": { id:"mentor001", role:"mentor", name:"Nguyễn Thanh Tùng", email:"tung.mentor@email.com", password:"mentor123",
+    centerCode:"TRX-HN02", userCode:"TRX-MNT-001", phone:"0912345678", joined:"15/01/2026",
+    expertise:["Arduino","IoT","3D Printing"], studentsGuided:12, projectsAdvised:8,
+    txpPoints:650, schedule:[
+      {day:"Thứ 4",time:"18:00–20:00",subject:"Tư vấn dự án IoT",room:"Online"},
+      {day:"Thứ 7",time:"09:00–11:00",subject:"Mentoring tại Lab",room:"Lab 1"},
+    ],
+    notifications:[
+      {id:1,msg:"Học sinh Nguyễn Minh Khôi yêu cầu tư vấn dự án",time:"1 giờ trước",read:false},
+      {id:2,msg:"Lịch mentoring Thứ 4 đã được xác nhận",time:"1 ngày trước",read:true},
+    ]
+  },
+  "ctv001": { id:"ctv001", role:"volunteer", name:"Nguyễn Hoàng Nam", email:"nam.ctv@email.com", password:"ctv123",
+    centerCode:"TRX-HN01", userCode:"TRX-CTV-001", phone:"0987654321", joined:"01/02/2026",
+    tasks:["Hỗ trợ Free Tech Day","Truyền thông mạng xã hội","Kỹ thuật sự kiện"],
+    eventsSupported:5, txpPoints:180,
+    notifications:[
+      {id:1,msg:"Free Tech Day ngày 08/03 cần 3 CTV hỗ trợ — đăng ký ngay!",time:"2 giờ trước",read:false},
+    ]
+  },
+  "teacher001": { id:"teacher001", role:"teacher", name:"Cô Lê Thu Thảo", email:"thao.teacher@email.com", password:"teacher123",
+    centerCode:"TRX-HN02", userCode:"TRX-TCH-001", phone:"0934567890", joined:"15/01/2026",
+    clubs:["CLB Robotics Đông Anh","CLB IoT Starter"],
+    txpPoints:420, studentsManaged:34,
+    notifications:[
+      {id:1,msg:"CLB Robotics có 2 học sinh mới đăng ký hôm nay",time:"3 giờ trước",read:false},
+    ]
+  },
+  "manager001": { id:"manager001", role:"manager", name:"Anh Trần Đức Minh", email:"minh.manager@email.com", password:"manager123",
+    centerCode:"TRX-HN02", userCode:"TRX-MGR-001", phone:"0902345678", joined:"01/01/2026",
+    title:"Quản lý vận hành Chi nhánh Đông Anh",
+    notifications:[
+      {id:1,msg:"Báo cáo doanh thu tháng 2 đã sẵn sàng",time:"1 ngày trước",read:false},
+    ]
+  },
+};
+
+// Pending registrations (simulated state)
+const INITIAL_PENDING = [
+  {id:"p001",name:"Nguyễn Hoàng Nam",role:"volunteer",email:"nam.ctv@email.com",phone:"0987654321",center:"TRX-HN01",msg:"Muốn hỗ trợ sự kiện cuối tuần",date:"06/03/2026",status:"pending"},
+  {id:"p002",name:"Trần Thị Bích",role:"parent_volunteer",email:"bich.ph@email.com",phone:"0901234567",center:"TRX-HN02",msg:"Phụ huynh muốn tình nguyện hỗ trợ TrinityX",date:"06/03/2026",status:"pending"},
+  {id:"p003",name:"Phạm Tuấn Khải",role:"student",email:"khai@email.com",phone:"0912345678",center:"TRX-HN01",msg:"Học sinh lớp 8, quan tâm đến IoT",date:"05/03/2026",status:"pending"},
+  {id:"p004",name:"Lê Hoàng Gia Bảo",role:"mentor",email:"bao.mentor@email.com",phone:"0923456789",center:"TRX-HN02",msg:"Kỹ sư điện tử 5 năm kinh nghiệm, muốn làm mentor",date:"04/03/2026",status:"approved"},
+  {id:"p005",name:"Nguyễn Thị Lan",role:"tech_staff",email:"lan.kt@trinityx.net",phone:"0934567890",center:"TRX-HN01",msg:"Xin vào vị trí nhân viên kỹ thuật Lab",date:"03/03/2026",status:"rejected"},
+  {id:"p006",name:"Bùi Quang Tuấn",role:"sales_staff",email:"tuan.bh@trinityx.net",phone:"0945678901",center:"TRX-HN02",msg:"Có kinh nghiệm bán hàng 2 năm, muốn gia nhập TrinityX",date:"05/03/2026",status:"pending"},
+];
+
+const NEWS_FEED = [
+  {id:1,type:"course",tag:"Khóa học mới",title:"Khai giảng lớp Starter tháng 4/2026",desc:"TrinityX Đông Anh mở thêm lớp Starter sáng Thứ 7. Giới hạn 15 học sinh. Đăng ký trước 31/03.",date:"06/03/2026",urgent:true,icon:"🎓",cta:"Đăng ký ngay",ctaRole:"student"},
+  {id:2,type:"event",tag:"Sự kiện sắp diễn ra",title:"Free Tech Day – 08/03/2026",desc:"Trải nghiệm công nghệ miễn phí cuối tuần này. Mở cho tất cả lứa tuổi. Lắp ráp LED, thử robot, gặp gỡ mentor.",date:"04/03/2026",urgent:false,icon:"🎪",cta:"Xem chi tiết",ctaRole:"all"},
+  {id:3,type:"recruit_volunteer",tag:"Tuyển CTV",title:"Tuyển 5 Cộng tác viên sự kiện tháng 3",desc:"TrinityX tìm CTV hỗ trợ tổ chức sự kiện cuối tuần. Yêu cầu: nhiệt tình, T7-CN. Phụ cấp + TXP Points.",date:"03/03/2026",urgent:true,icon:"🙋",cta:"Đăng ký CTV",ctaRole:"volunteer"},
+  {id:4,type:"recruit_parent",tag:"Phụ huynh hỗ trợ",title:"Maker Council tháng 3 — Mời phụ huynh tham gia",desc:"Phụ huynh muốn đồng hành TrinityX? Hội đồng Phụ huynh cần thêm thành viên tổ chức sự kiện và quản lý quỹ.",date:"02/03/2026",urgent:false,icon:"👨‍👩‍👧",cta:"Đăng ký tham gia",ctaRole:"parent"},
+  {id:5,type:"competition",tag:"Thi đấu",title:"TrinityX City Cup Q1 — Mở đăng ký đội",desc:"Cuộc thi cấp Cụm tỉnh Hà Nội. Creator/Innovator đăng ký nhóm 3 người. Hạn 20/03/2026.",date:"01/03/2026",urgent:true,icon:"🏆",cta:"Đăng ký đội",ctaRole:"student"},
+  {id:6,type:"robotic",tag:"Robotic quốc tế",title:"WRO 2026 — Vòng loại quốc gia tháng 5",desc:"World Robot Olympiad 2026 mở đăng ký. Học sinh Innovator được hỗ trợ đào tạo và đăng ký tham dự.",date:"28/02/2026",urgent:false,icon:"🤖",cta:"Tìm hiểu thêm",ctaRole:"student"},
+  {id:7,type:"robotic",tag:"Robotic quốc gia",title:"Robocon Việt Nam 2026 — Chủ đề 'Bridge The Future'",desc:"Ban tổ chức Robocon VN 2026 công bố chủ đề năm nay. Học sinh từ 15 tuổi có thể tham gia với bảo trợ của TrinityX.",date:"25/02/2026",urgent:false,icon:"🦾",cta:"Xem thông báo",ctaRole:"student"},
+  {id:8,type:"recruit_competition",tag:"Tuyển học sinh thi đấu",title:"Tuyển 6 học sinh vào đội tuyển TrinityX",desc:"TrinityX tuyển học sinh xuất sắc dự thi WRO và Robotic toàn quốc. Yêu cầu: Creator trở lên, TXP ≥ 300.",date:"22/02/2026",urgent:true,icon:"⭐",cta:"Nộp hồ sơ",ctaRole:"student"},
+];
+
+const ROBOTIC_EVENTS = [
+  {id:1,name:"WRO 2026 – World Robot Olympiad",level:"Quốc tế",date:"Tháng 11/2026",org:"World Robot Olympiad Association",desc:"Cuộc thi robotics lớn nhất thế giới. Học sinh Innovator được hỗ trợ đào tạo và tham gia vòng loại quốc gia.",prize:"Cúp quốc tế + Học bổng",status:"Đang mở ĐK",color:"#c084fc"},
+  {id:2,name:"Robocon Việt Nam 2026",level:"Quốc gia",date:"Tháng 8/2026",org:"Đài Truyền hình VTV3",desc:"Giải đấu robotic truyền thống của VTV. Chủ đề 2026: 'Bridge The Future'. TrinityX bảo trợ đội thi.",prize:"Cúp vô địch + 50 triệu",status:"Đang chuẩn bị",color:"#ef4444"},
+  {id:3,name:"TrinityX National Championship 2026",level:"TrinityX",date:"15/06/2026",org:"TrinityX HQ",desc:"Giải vô địch TrinityX toàn quốc. 64 đội tranh cúp vô địch và học bổng lớn.",prize:"Cúp + 500 TXP + Học bổng",status:"Sắp mở ĐK",color:"var(--gold)"},
+  {id:4,name:"Maker Battle Day tháng 3",level:"Trung tâm",date:"15/03/2026",org:"TrinityX Đông Anh",desc:"Cuộc thi sáng tạo tháng 3. Chủ đề: 'Smart Home Solutions'. Hình thức: Đội 3 người.",prize:"Chứng nhận + 80 TXP",status:"Đang mở ĐK",color:"var(--green)"},
+];
+
+const EVENTS = [
+  { id:1, name:"Free Tech Day", date:"08/03/2026", location:"TrinityX Đông Anh", type:"Trải nghiệm", slots:15, enrolled:12, ticketPrice:0 },
+  { id:2, name:"Maker Battle Day", date:"15/03/2026", location:"TrinityX Thanh Xuân", type:"Thi đấu", slots:20, enrolled:8, ticketPrice:50000 },
+  { id:3, name:"Open House TrinityX", date:"22/03/2026", location:"Tất cả chi nhánh", type:"Cộng đồng", slots:50, enrolled:31, ticketPrice:0 },
+];
+
+const COMPETITIONS = [
+  { id:1, name:"Maker Battle Day tháng 3/2026", level:"Trung tâm", date:"15/03/2026", center:"TrinityX Đông Anh", status:"Đang mở ĐK", teams:8, maxTeams:12, prize:"Chứng nhận + 80 TXP" },
+  { id:2, name:"TrinityX City Cup Q1/2026", level:"Cụm tỉnh", date:"28/03/2026", center:"Hà Nội", status:"Sắp mở", teams:0, maxTeams:20, prize:"Huy chương + 200 TXP + học bổng" },
+  { id:3, name:"TrinityX National Championship 2026", level:"Toàn quốc", date:"15/06/2026", center:"Toàn quốc", status:"Sắp mở", teams:0, maxTeams:64, prize:"Cúp vô địch + 500 TXP + học bổng lớn" },
+];
+
+const STORE_PRODUCTS = [
+  { id:1, name:"Đèn LED Ma Trận 8x8", student:"Nguyễn Minh Khôi", level:"Creator", center:"Đông Anh", price:250000, sold:3, stock:2, category:"Ánh sáng", desc:"Màn hình LED 8x8 lập trình hiệu ứng tên, hình ảnh cuộn. Điều khiển Bluetooth. Vỏ acrylic.", qr:"QR-TXP-001", badge:"Bán chạy", color:"#22c55e", emoji:"💡" },
+  { id:2, name:"Hệ thống tưới cây tự động", student:"Nguyễn Minh Khôi", level:"Creator", center:"Đông Anh", price:350000, sold:1, stock:1, category:"IoT", desc:"Tự động tưới khi đất khô, kết nối WiFi, xem dữ liệu qua app. Cảm biến độ ẩm, relay điều khiển bơm.", qr:"QR-TXP-002", badge:"Mới", color:"#3b82f6", emoji:"🌱" },
+  { id:3, name:"Đồng hồ LED retro", student:"Trần Hà Linh", level:"Creator", center:"Thanh Xuân", price:180000, sold:5, stock:3, category:"Ánh sáng", desc:"Đồng hồ hiển thị giờ/phút/giây bằng LED 7 đoạn, vỏ gỗ thủ công.", qr:"QR-TXP-003", badge:"Bán chạy", color:"#f59e0b", emoji:"⏰" },
+  { id:4, name:"Robot tránh vật cản", student:"Lê Tuấn Minh", level:"Innovator", center:"Đông Anh", price:480000, sold:2, stock:1, category:"Robot", desc:"Robot 4 bánh, cảm biến siêu âm tránh vật cản, điều khiển từ xa qua app Android/iOS.", qr:"QR-TXP-004", badge:"Innovator", color:"#ef4444", emoji:"🤖" },
+  { id:5, name:"Đèn ngủ cảm ứng sắc màu", student:"Nguyễn Thu Hà", level:"Starter", center:"Đông Anh", price:120000, sold:8, stock:5, category:"Ánh sáng", desc:"Đèn RGB cảm ứng chạm đổi màu, 7 chế độ ánh sáng, sạc USB.", qr:"QR-TXP-006", badge:"Bán chạy", color:"#ec4899", emoji:"🌈" },
+  { id:6, name:"Xe điều khiển RC tự chế", student:"Lê Tuấn Minh", level:"Innovator", center:"Đông Anh", price:650000, sold:1, stock:1, category:"Robot", desc:"Xe RC 4WD, điều khiển qua smartphone, camera FPV góc nhìn thứ nhất, pin lithium 2h.", qr:"QR-TXP-007", badge:"Innovator", color:"#ef4444", emoji:"🚗" },
+];
+
+const CHATBOT_KNOWLEDGE = {
+  "chương trình": "TrinityX có 3 cấp độ: Starter (10 buổi, cá nhân), Creator (20 buổi, nhóm 3 HS), Innovator (30–60 buổi, dự án). Học sinh tiến qua từng cấp bằng cách hoàn thành sản phẩm và tham gia sự kiện.",
+  "học phí": "Học phí tùy chương trình và trung tâm. Vui lòng liên hệ trực tiếp TrinityX Đông Anh (0384101895) hoặc TrinityX Thanh Xuân để được tư vấn chi tiết.",
+  "txp": "TXP Points là hệ thống điểm thưởng của TrinityX. Bạn kiếm điểm bằng cách hoàn thành sản phẩm (+50), bán sản phẩm (+100), tham gia sự kiện (+30), đạt hạng thi đấu (+80), giới thiệu bạn (+20).",
+  "doanh thu": "Khi sản phẩm bán được, học sinh nhận 70% doanh thu, trung tâm nhận 30%. Ví dụ sản phẩm bán 250.000đ → học sinh nhận 175.000đ.",
+  "sự kiện": "TrinityX tổ chức sự kiện hàng tuần vào Thứ 7 và Chủ nhật: Free Tech Day (trải nghiệm miễn phí), Maker Battle Day (thi đấu), Open House. Xem lịch trong mục Sự kiện.",
+  "đăng ký": "Để đăng ký học, nhấn 'Đăng ký' ở trang chủ. Bạn sẽ nhận mã học sinh/phụ huynh sau khi TrinityX xác nhận trong 24h.",
+  "thi đấu": "TrinityX có 3 cấp thi đấu: Trung tâm (hàng tháng), Cụm tỉnh (hàng quý), Toàn quốc (hàng năm). Học sinh cấp Creator trở lên mới được tham gia.",
+  "quỹ phụ huynh": "Quỹ phụ huynh là quỹ cộng đồng minh bạch do phụ huynh đóng góp và quản lý, dùng cho vật tư sự kiện, in ấn, trang thiết bị. Phụ huynh có thể xem sao kê và biểu quyết chi tiêu.",
+  "địa chỉ": "TrinityX có 2 chi nhánh tại Hà Nội:\n• TrinityX Thanh Xuân: Tầng 2, 21T1, số 1 Nguyễn Huy Tưởng (mã: TRX-HN01)\n• TrinityX Đông Anh: Đường Cửa Đình, Xã Thiên Lộc (mã: TRX-HN02)",
+  "starter": "Cấp Starter phù hợp học sinh từ lớp 4 trở lên chưa có kiến thức về điện tử. Học viên làm cá nhân trong 10 buổi, tạo sản phẩm cơ bản như đèn LED, quạt điều khiển, đồng hồ.",
+  "creator": "Cấp Creator dành cho học sinh đã hoàn thành Starter. Làm nhóm 3 người trong 20 buổi, tạo sản phẩm IoT như tưới cây WiFi, LED matrix, cảm biến. Yêu cầu bán được ít nhất 1 sản phẩm.",
+  "innovator": "Cấp Innovator là cấp cao nhất, 30–60 buổi, làm dự án robot/drone/xe RC. Yêu cầu bán ≥3 sản phẩm, tham gia ≥6 sự kiện và 2 cuộc thi. Tốt nghiệp có thể trở thành mentor.",
+};
+
+// ─── ICONS ───────────────────────────────────────────────────────────────────
+const Icon = {
+  logo: ({ size=44 }) => (
+    <svg viewBox="0 0 80 80" style={{width:size,height:size,flexShrink:0}}>
+      <g stroke="#22c55e" strokeWidth="3" fill="none">
+        <path d="M40 12 C40 12 58 22 58 40 C58 52 50 60 40 60" strokeWidth="4"/>
+        <path d="M40 12 C40 12 22 22 22 40 C22 52 30 60 40 60" strokeWidth="4"/>
+        <path d="M22 40 C18 30 24 20 34 18" strokeWidth="3"/>
+        <path d="M58 40 C62 30 56 20 46 18" strokeWidth="3"/>
+        <circle cx="40" cy="30" r="5" fill="#22c55e" opacity="0.9"/>
+        <circle cx="28" cy="48" r="3.5" fill="#22c55e" opacity="0.6"/>
+        <circle cx="52" cy="48" r="3.5" fill="#22c55e" opacity="0.6"/>
+        <line x1="36" y1="32" x2="31" y2="44" strokeWidth="1.5" opacity="0.5"/>
+        <line x1="44" y1="32" x2="49" y2="44" strokeWidth="1.5" opacity="0.5"/>
+      </g>
+    </svg>
+  ),
+  home: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>,
+  user: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  star: () => <svg viewBox="0 0 24 24" fill="currentColor" style={{width:16,height:16}}><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>,
+  bell: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>,
+  logout: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
+  box: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>,
+  calendar: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+  award: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>,
+  child: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>,
+  qr: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:14,height:14}}><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="19" y="14" width="2" height="2"/><rect x="14" y="19" width="2" height="2"/><rect x="18" y="19" width="3" height="2"/></svg>,
+  chart: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+  eye: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:15,height:15}}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+  eyeOff: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:15,height:15}}><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
+  check: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{width:14,height:14}}><polyline points="20,6 9,17 4,12"/></svg>,
+  x: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:14,height:14}}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  menu: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:22,height:22}}><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
+  store: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><path d="M3 9l1-5h16l1 5"/><path d="M3 9h18v11a1 1 0 01-1 1H4a1 1 0 01-1-1V9z"/><path d="M9 9v12"/><path d="M15 9v12"/></svg>,
+  chat: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
+  trophy: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><polyline points="8,21 12,17 16,21"/><line x1="12" y1="17" x2="12" y2="11"/><path d="M5 3H19v6a7 7 0 01-14 0V3z"/><line x1="5" y1="7" x2="3" y2="7"/><line x1="19" y1="7" x2="21" y2="7"/></svg>,
+  wallet: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>,
+  settings: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
+  search: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+  heart: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:14,height:14}}><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
+  tag: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:14,height:14}}><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
+};
+
+// ─── CSS ─────────────────────────────────────────────────────────────────────
+const css = `
+  @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800;900&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #22c55e; --green-dark: #16a34a; --green-light: #4ade80;
+    --red: #ef4444; --gold: #f59e0b; --gold-light: #fcd34d; --blue: #3b82f6;
+    --bg: #0a0f0a; --bg2: #0f1a0f; --bg3: #162416; --card: #111a11;
+    --border: #1e3a1e; --border2: #2d4a2d;
+    --text: #e8f5e9; --text2: #9dbf9d; --text3: #6b9b6b;
+    --radius: 12px; --radius-lg: 20px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  body { background:var(--bg); color:var(--text); font-family:'Be Vietnam Pro',sans-serif; min-height:100vh; }
+  h1,h2,h3,h4 { font-family:'Exo 2',sans-serif; }
+  input,select,textarea { outline:none; }
+  button { cursor:pointer; border:none; }
+  a { text-decoration:none; }
+  ::-webkit-scrollbar { width:5px; } ::-webkit-scrollbar-track { background:var(--bg2); } ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
+
+  /* LANDING */
+  .landing { min-height:100vh; }
+  .nav { display:flex; align-items:center; justify-content:space-between; padding:14px 40px; border-bottom:1px solid var(--border); background:rgba(10,15,10,0.95); backdrop-filter:blur(12px); position:sticky; top:0; z-index:100; }
+  .nav-logo { display:flex; align-items:center; gap:10px; }
+  .nav-logo-text { font-family:'Exo 2',sans-serif; font-size:22px; font-weight:800; }
+  .nav-logo-text span { color:var(--red); }
+  .nav-logo-sub { font-size:9px; color:var(--gold); letter-spacing:2px; text-transform:uppercase; display:block; margin-top:-2px; }
+  .nav-links { display:flex; gap:24px; align-items:center; }
+  .nav-link { color:var(--text2); font-size:13px; font-weight:500; transition:color .2s; background:none; border:none; cursor:pointer; padding:0; }
+  .nav-link:hover { color:var(--green); }
+  .nav-actions { display:flex; gap:10px; }
+  .btn { padding:9px 20px; border-radius:8px; font-size:13px; font-weight:600; transition:all .2s; font-family:'Be Vietnam Pro',sans-serif; }
+  .btn-outline { background:transparent; border:1.5px solid var(--green); color:var(--green); }
+  .btn-outline:hover { background:var(--green); color:var(--bg); }
+  .btn-primary { background:var(--green); color:var(--bg); border:none; }
+  .btn-primary:hover { background:var(--green-light); transform:translateY(-1px); }
+  .btn-gold { background:var(--gold); color:var(--bg); border:none; }
+  .btn-danger { background:var(--red); color:#fff; border:none; }
+  .btn-ghost { background:transparent; color:var(--text2); padding:8px 14px; border-radius:8px; border:none; }
+  .btn-ghost:hover { background:var(--bg3); color:var(--text); }
+  .btn-sm { padding:6px 12px; font-size:12px; }
+  .btn-full { width:100%; display:block; text-align:center; padding:12px; border-radius:10px; font-size:14px; }
+  .store-nav-btn { display:flex; align-items:center; gap:6px; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:600; background:linear-gradient(135deg,rgba(34,197,94,0.12),rgba(245,158,11,0.08)); border:1px solid rgba(34,197,94,0.25); color:var(--text); cursor:pointer; transition:all .2s; }
+  .store-nav-btn:hover { border-color:var(--green); }
+  .store-nav-btn span { color:var(--green); }
+
+  .hero { padding:80px 40px 60px; text-align:center; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 70% 50% at 50% 0%, rgba(34,197,94,0.07) 0%, transparent 70%); pointer-events:none; }
+  .hero-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:20px; padding:5px 14px; font-size:12px; color:var(--green); margin-bottom:20px; }
+  .hero h1 { font-size:clamp(28px,5vw,60px); font-weight:900; line-height:1.1; margin-bottom:18px; }
+  .hero h1 span { color:var(--green); }
+  .hero p { font-size:16px; color:var(--text2); max-width:540px; margin:0 auto 32px; line-height:1.7; }
+  .hero-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .hero-actions .btn { padding:13px 30px; font-size:14px; border-radius:10px; }
+  .stats-bar { display:flex; justify-content:center; gap:0; margin:50px 0 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .stat-item { flex:1; max-width:180px; padding:24px 16px; text-align:center; border-right:1px solid var(--border); }
+  .stat-item:last-child { border-right:none; }
+  .stat-num { font-family:'Exo 2',sans-serif; font-size:28px; font-weight:800; color:var(--green); }
+  .stat-label { font-size:11px; color:var(--text3); margin-top:4px; }
+  .section { padding:56px 40px; max-width:1100px; margin:0 auto; }
+  .section-title { font-size:26px; font-weight:800; margin-bottom:8px; }
+  .section-sub { color:var(--text2); font-size:14px; margin-bottom:36px; }
+  .levels-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; }
+  .level-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:26px; transition:all .3s; position:relative; overflow:hidden; }
+  .level-card::before { content:''; position:absolute; inset:0; opacity:0; transition:opacity .3s; pointer-events:none; }
+  .level-card.starter::before { background:radial-gradient(circle at top right, rgba(34,197,94,0.08), transparent 60%); }
+  .level-card.creator::before { background:radial-gradient(circle at top right, rgba(245,158,11,0.08), transparent 60%); }
+  .level-card.innovator::before { background:radial-gradient(circle at top right, rgba(239,68,68,0.08), transparent 60%); }
+  .level-card:hover { border-color:var(--border2); transform:translateY(-4px); box-shadow:var(--shadow); }
+  .level-card:hover::before { opacity:1; }
+  .level-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:14px; }
+  .badge-starter { background:rgba(34,197,94,0.15); color:var(--green); }
+  .badge-creator { background:rgba(245,158,11,0.15); color:var(--gold); }
+  .badge-innovator { background:rgba(239,68,68,0.15); color:var(--red); }
+  .level-card h3 { font-size:18px; font-weight:700; margin-bottom:8px; }
+  .level-card p { color:var(--text2); font-size:12px; line-height:1.6; margin-bottom:14px; }
+  .level-detail { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text3); margin-top:4px; }
+  .level-detail span { color:var(--text2); }
+  .messages-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; }
+  .msg-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; border-left:3px solid var(--green); }
+  .msg-card p { color:var(--text2); font-size:13px; line-height:1.7; font-style:italic; }
+  .msg-card strong { color:var(--green-light); font-style:normal; }
+
+  /* AUTH */
+  .auth-page { min-height:100vh; display:flex; flex-direction:column; }
+  .auth-container { flex:1; display:flex; align-items:center; justify-content:center; padding:40px 20px; }
+  .auth-box { background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:36px; width:100%; max-width:420px; box-shadow:var(--shadow); }
+  .auth-header { text-align:center; margin-bottom:28px; }
+  .auth-header h2 { font-size:22px; font-weight:800; margin-top:10px; }
+  .auth-header p { color:var(--text2); font-size:13px; margin-top:5px; }
+  .role-tabs { display:flex; background:var(--bg2); border-radius:9px; padding:3px; margin-bottom:24px; }
+  .role-tab { flex:1; padding:9px; text-align:center; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; color:var(--text2); background:none; border:none; }
+  .role-tab.active { background:var(--green); color:var(--bg); }
+  .form-group { margin-bottom:16px; }
+  .form-label { display:block; font-size:12px; font-weight:500; color:var(--text2); margin-bottom:5px; }
+  .form-input { width:100%; background:var(--bg2); border:1.5px solid var(--border2); border-radius:8px; padding:10px 13px; color:var(--text); font-size:13px; font-family:'Be Vietnam Pro',sans-serif; transition:border-color .2s; }
+  .form-input:focus { border-color:var(--green); }
+  .form-input::placeholder { color:var(--text3); }
+  .input-wrap { position:relative; }
+  .input-wrap .form-input { padding-right:38px; }
+  .input-eye { position:absolute; right:11px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text3); cursor:pointer; }
+  .form-error { color:var(--red); font-size:11px; margin-top:5px; }
+  .auth-footer { text-align:center; margin-top:18px; font-size:12px; color:var(--text2); }
+  .auth-footer a { color:var(--green); cursor:pointer; font-weight:500; }
+  .demo-hint { background:rgba(34,197,94,0.05); border:1px solid rgba(34,197,94,0.2); border-radius:7px; padding:10px 12px; margin-top:14px; font-size:11px; color:var(--text2); }
+  .demo-hint strong { color:var(--green); }
+
+  /* DASHBOARD */
+  .app { display:flex; min-height:100vh; }
+  .sidebar { width:232px; background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; z-index:50; transition:transform .3s; }
+  .sidebar-logo { padding:18px 18px 14px; border-bottom:1px solid var(--border); }
+  .sidebar-nav { flex:1; padding:14px 10px; overflow-y:auto; }
+  .nav-item { display:flex; align-items:center; gap:9px; padding:9px 11px; border-radius:8px; color:var(--text2); font-size:13px; font-weight:500; cursor:pointer; transition:all .2s; margin-bottom:2px; background:none; border:none; width:100%; text-align:left; }
+  .nav-item:hover { background:var(--bg3); color:var(--text); }
+  .nav-item.active { background:rgba(34,197,94,0.12); color:var(--green); }
+  .nav-section { font-size:9px; letter-spacing:2px; color:var(--text3); text-transform:uppercase; padding:10px 11px 5px; }
+  .sidebar-footer { padding:14px 10px; border-top:1px solid var(--border); }
+  .user-info { display:flex; align-items:center; gap:9px; padding:9px 11px; border-radius:8px; margin-bottom:6px; }
+  .avatar { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; font-family:'Exo 2',sans-serif; flex-shrink:0; }
+  .avatar-parent { background:linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff; }
+  .avatar-student { background:linear-gradient(135deg,var(--green-dark),var(--green)); color:var(--bg); }
+  .avatar-admin { background:linear-gradient(135deg,#7c3aed,#a855f7); color:#fff; }
+  .user-name { font-size:12px; font-weight:600; }
+  .user-role { font-size:10px; color:var(--text3); }
+  .main { margin-left:232px; flex:1; display:flex; flex-direction:column; min-height:100vh; }
+  .topbar { background:var(--bg2); border-bottom:1px solid var(--border); padding:0 24px; height:56px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:40; }
+  .topbar-title { font-family:'Exo 2',sans-serif; font-size:17px; font-weight:700; }
+  .notif-btn { position:relative; background:none; border:none; color:var(--text2); padding:5px; border-radius:7px; cursor:pointer; }
+  .notif-btn:hover { color:var(--text); background:var(--bg3); }
+  .notif-dot { position:absolute; top:3px; right:3px; width:7px; height:7px; background:var(--red); border-radius:50%; }
+  .content { padding:24px; flex:1; }
+  .page-header { margin-bottom:24px; }
+  .page-title { font-size:22px; font-weight:800; }
+  .page-sub { color:var(--text2); font-size:13px; margin-top:3px; }
+  .cards-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:24px; }
+  .stat-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:18px; display:flex; align-items:center; gap:14px; }
+  .stat-icon { width:40px; height:40px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .icon-green { background:rgba(34,197,94,0.12); color:var(--green); }
+  .icon-gold { background:rgba(245,158,11,0.12); color:var(--gold); }
+  .icon-red { background:rgba(239,68,68,0.12); color:var(--red); }
+  .icon-blue { background:rgba(59,130,246,0.12); color:#60a5fa; }
+  .icon-purple { background:rgba(168,85,247,0.12); color:#c084fc; }
+  .stat-card-val { font-family:'Exo 2',sans-serif; font-size:24px; font-weight:800; line-height:1; }
+  .stat-card-label { font-size:11px; color:var(--text2); margin-top:3px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .grid-3 { display:grid; grid-template-columns:2fr 1fr; gap:18px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+  .card-title { font-size:14px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+  .card-title span { color:var(--text3); font-size:11px; font-weight:400; }
+  .progress-wrap { margin-bottom:10px; }
+  .progress-info { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; font-size:12px; }
+  .progress-bar { height:7px; background:var(--bg3); border-radius:4px; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:4px; transition:width 1s ease; }
+  .fill-green { background:linear-gradient(90deg,var(--green-dark),var(--green)); }
+  .fill-gold { background:linear-gradient(90deg,#d97706,var(--gold)); }
+  .fill-red { background:linear-gradient(90deg,#b91c1c,var(--red)); }
+  .fill-blue { background:linear-gradient(90deg,#1d4ed8,var(--blue)); }
+  .table { width:100%; border-collapse:collapse; }
+  .table th { text-align:left; font-size:10px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:1px; padding:7px 10px; border-bottom:1px solid var(--border); }
+  .table td { padding:11px 10px; font-size:12px; border-bottom:1px solid var(--border); }
+  .table tr:last-child td { border-bottom:none; }
+  .table tr:hover td { background:rgba(34,197,94,0.03); }
+  .badge { display:inline-flex; align-items:center; gap:3px; padding:2px 9px; border-radius:20px; font-size:10px; font-weight:600; }
+  .badge-success { background:rgba(34,197,94,0.12); color:var(--green); }
+  .badge-warning { background:rgba(245,158,11,0.12); color:var(--gold); }
+  .badge-info { background:rgba(59,130,246,0.12); color:#60a5fa; }
+  .badge-muted { background:rgba(107,155,107,0.1); color:var(--text3); }
+  .badge-red { background:rgba(239,68,68,0.12); color:var(--red); }
+  .badge-purple { background:rgba(168,85,247,0.12); color:#c084fc; }
+  .notif-list { display:flex; flex-direction:column; }
+  .notif-item { display:flex; gap:10px; padding:12px 0; border-bottom:1px solid var(--border); align-items:flex-start; }
+  .notif-item:last-child { border-bottom:none; }
+  .notif-dot2 { width:7px; height:7px; border-radius:50%; background:var(--green); flex-shrink:0; margin-top:5px; }
+  .notif-dot2.read { background:var(--border2); }
+  .notif-text { font-size:12px; line-height:1.5; }
+  .notif-time { font-size:10px; color:var(--text3); margin-top:3px; }
+  .event-date { background:var(--bg3); border-radius:7px; padding:7px 11px; text-align:center; min-width:44px; }
+  .event-day { font-family:'Exo 2',sans-serif; font-size:18px; font-weight:800; color:var(--green); line-height:1; }
+  .event-month { font-size:9px; color:var(--text3); }
+  .progress-mini { height:3px; background:var(--bg3); border-radius:2px; margin-top:5px; }
+  .progress-mini-fill { height:100%; background:var(--green); border-radius:2px; }
+  .txp-display { background:linear-gradient(135deg,var(--bg3),rgba(34,197,94,0.08)); border:1px solid rgba(34,197,94,0.25); border-radius:var(--radius); padding:18px; text-align:center; margin-bottom:14px; }
+  .txp-num { font-family:'Exo 2',sans-serif; font-size:36px; font-weight:900; color:var(--green); }
+  .txp-label { font-size:11px; color:var(--text3); letter-spacing:2px; text-transform:uppercase; }
+  .schedule-item { display:flex; gap:10px; padding:10px; background:var(--bg2); border-radius:7px; margin-bottom:7px; border-left:3px solid var(--green); }
+  .schedule-day { font-size:11px; font-weight:700; color:var(--green); min-width:44px; }
+  .schedule-time { font-size:10px; color:var(--text3); }
+  .schedule-subject { font-size:12px; font-weight:600; }
+  .schedule-room { font-size:10px; color:var(--text2); }
+
+  /* STORE */
+  .store-hero { background:linear-gradient(135deg,rgba(34,197,94,0.07),rgba(245,158,11,0.05)); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px 32px; margin-bottom:22px; position:relative; overflow:hidden; }
+  .store-stats { display:flex; gap:20px; margin-top:16px; flex-wrap:wrap; }
+  .store-stat-n { font-family:'Exo 2',sans-serif; font-size:20px; font-weight:800; color:var(--green); }
+  .store-stat-l { font-size:10px; color:var(--text3); }
+  .search-box { display:flex; align-items:center; gap:7px; background:var(--card); border:1.5px solid var(--border2); border-radius:8px; padding:8px 12px; flex:1; min-width:180px; max-width:280px; }
+  .search-box input { background:none; border:none; color:var(--text); font-size:13px; font-family:'Be Vietnam Pro',sans-serif; width:100%; }
+  .search-box input::placeholder { color:var(--text3); }
+  .filter-btn { padding:8px 14px; border-radius:7px; font-size:12px; font-weight:600; background:var(--card); border:1.5px solid var(--border2); color:var(--text2); cursor:pointer; transition:all .2s; }
+  .filter-btn:hover,.filter-btn.active { background:rgba(34,197,94,0.1); border-color:var(--green); color:var(--green); }
+  .products-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:16px; }
+  .product-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; transition:all .3s; cursor:pointer; }
+  .product-card:hover { transform:translateY(-4px); box-shadow:0 10px 28px rgba(0,0,0,0.4); border-color:var(--border2); }
+  .product-img { height:140px; display:flex; align-items:center; justify-content:center; position:relative; font-size:46px; }
+  .product-badge { position:absolute; top:10px; right:10px; padding:2px 9px; border-radius:20px; font-size:9px; font-weight:700; letter-spacing:.5px; }
+  .badge-hot { background:rgba(239,68,68,0.2); color:#f87171; }
+  .badge-new { background:rgba(59,130,246,0.2); color:#60a5fa; }
+  .badge-inno { background:rgba(239,68,68,0.15); color:var(--red); }
+  .product-body { padding:15px; }
+  .product-name { font-family:'Exo 2',sans-serif; font-size:14px; font-weight:700; margin-bottom:5px; }
+  .product-student { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text2); margin-bottom:8px; }
+  .product-student-dot { width:18px; height:18px; border-radius:50%; background:linear-gradient(135deg,var(--green-dark),var(--green)); display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; color:var(--bg); }
+  .product-desc { font-size:11px; color:var(--text3); line-height:1.6; margin-bottom:12px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .product-footer { display:flex; align-items:center; justify-content:space-between; }
+  .product-price { font-family:'Exo 2',sans-serif; font-size:18px; font-weight:800; color:var(--green); }
+  .product-meta { font-size:10px; color:var(--text3); margin-top:2px; }
+  .btn-buy { padding:7px 14px; border-radius:7px; background:var(--green); color:var(--bg); font-size:12px; font-weight:700; border:none; cursor:pointer; transition:all .2s; font-family:'Be Vietnam Pro',sans-serif; }
+  .btn-buy:hover { background:var(--green-light); }
+  .btn-buy:disabled { background:var(--bg3); color:var(--text3); cursor:not-allowed; }
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:200; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .modal-box { background:var(--card); border:1px solid var(--border2); border-radius:var(--radius-lg); width:100%; max-width:520px; overflow:hidden; }
+  .modal-img { height:180px; display:flex; align-items:center; justify-content:center; font-size:70px; position:relative; }
+  .modal-body { padding:24px; }
+  .modal-title { font-family:'Exo 2',sans-serif; font-size:20px; font-weight:800; margin-bottom:5px; }
+  .modal-footer { display:flex; align-items:center; justify-content:space-between; padding-top:14px; border-top:1px solid var(--border); }
+  .modal-price { font-family:'Exo 2',sans-serif; font-size:24px; font-weight:900; color:var(--green); }
+  .qr-box { display:flex; align-items:center; gap:5px; background:var(--bg2); border:1px solid var(--border); border-radius:5px; padding:5px 9px; font-size:10px; color:var(--text3); margin-top:7px; }
+
+  /* CHATBOT */
+  .chatbot-fab { position:fixed; bottom:24px; right:24px; z-index:150; width:52px; height:52px; border-radius:50%; background:var(--green); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(34,197,94,0.4); transition:all .2s; }
+  .chatbot-fab:hover { transform:scale(1.1); }
+  .chatbot-window { position:fixed; bottom:90px; right:24px; z-index:150; width:340px; max-height:480px; background:var(--card); border:1px solid var(--border2); border-radius:var(--radius-lg); display:flex; flex-direction:column; box-shadow:0 8px 40px rgba(0,0,0,0.5); }
+  .chatbot-header { display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--border); }
+  .chatbot-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--green-dark),var(--green)); display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .chatbot-title { font-weight:700; font-size:13px; }
+  .chatbot-sub { font-size:10px; color:var(--green); }
+  .chatbot-messages { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; }
+  .msg-bot { background:var(--bg3); border-radius:12px 12px 12px 3px; padding:9px 12px; font-size:12px; line-height:1.6; max-width:85%; color:var(--text2); align-self:flex-start; }
+  .msg-user { background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.2); border-radius:12px 12px 3px 12px; padding:9px 12px; font-size:12px; max-width:85%; align-self:flex-end; text-align:right; }
+  .chatbot-input { display:flex; gap:7px; padding:10px 12px; border-top:1px solid var(--border); }
+  .chatbot-input input { flex:1; background:var(--bg2); border:1px solid var(--border2); border-radius:7px; padding:7px 10px; color:var(--text); font-size:12px; font-family:'Be Vietnam Pro',sans-serif; }
+  .chatbot-send { width:32px; height:32px; background:var(--green); border:none; border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .chatbot-suggestions { display:flex; flex-wrap:wrap; gap:5px; padding:0 14px 10px; }
+  .chatbot-sug { padding:4px 9px; background:var(--bg3); border:1px solid var(--border2); border-radius:20px; font-size:10px; color:var(--text2); cursor:pointer; transition:all .2s; }
+  .chatbot-sug:hover { border-color:var(--green); color:var(--green); }
+
+  /* COMPETITION */
+  .comp-level-badge { padding:3px 10px; border-radius:20px; font-size:10px; font-weight:700; }
+  .comp-center { background:rgba(34,197,94,0.12); color:var(--green); }
+  .comp-province { background:rgba(59,130,246,0.12); color:#60a5fa; }
+  .comp-national { background:rgba(239,68,68,0.12); color:var(--red); }
+
+  /* FUND */
+  .fund-box { background:linear-gradient(135deg,rgba(245,158,11,0.08),rgba(34,197,94,0.06)); border:1px solid rgba(245,158,11,0.25); border-radius:var(--radius-lg); padding:20px 24px; }
+  .fund-balance { font-family:'Exo 2',sans-serif; font-size:32px; font-weight:900; color:var(--gold); }
+
+  /* ADMIN */
+  .admin-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+  .admin-stat-big { font-family:'Exo 2',sans-serif; font-size:28px; font-weight:900; }
+  .center-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+  .center-row:last-child { border-bottom:none; }
+  .center-code { font-family:'Exo 2',sans-serif; font-size:11px; color:var(--green); background:rgba(34,197,94,0.1); padding:2px 8px; border-radius:4px; }
+
+  /* FAQ */
+  .faq-item { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; transition:border-color .2s; }
+  .faq-item.open { border-color:var(--border2); }
+  .faq-btn { width:100%; display:flex; justify-content:space-between; align-items:center; padding:14px 18px; background:none; border:none; cursor:pointer; text-align:left; gap:10px; }
+  .faq-q { font-weight:600; font-size:13px; color:var(--text); }
+  .faq-plus { color:var(--green); font-size:16px; transition:transform .2s; flex-shrink:0; }
+  .faq-plus.open { transform:rotate(45deg); }
+  .faq-a { padding:0 18px 14px; font-size:12px; color:var(--text2); line-height:1.8; border-top:1px solid var(--border); }
+
+  /* NEWS FEED */
+  .news-section { background:var(--bg2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:52px 40px; }
+  .news-tabs { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
+  .news-tab { padding:6px 16px; border-radius:20px; font-size:12px; font-weight:600; cursor:pointer; border:1.5px solid var(--border2); color:var(--text2); background:none; transition:all .2s; }
+  .news-tab.active { border-color:var(--green); color:var(--green); background:rgba(34,197,94,0.08); }
+  .news-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+  .news-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; transition:all .25s; cursor:pointer; position:relative; }
+  .news-card:hover { border-color:var(--border2); transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.3); }
+  .news-card.urgent { border-left:3px solid var(--red); }
+  .news-tag { display:inline-flex; align-items:center; gap:5px; padding:2px 9px; border-radius:12px; font-size:9px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; margin-bottom:10px; }
+  .tag-course { background:rgba(34,197,94,0.1); color:var(--green); }
+  .tag-event { background:rgba(59,130,246,0.1); color:#60a5fa; }
+  .tag-volunteer { background:rgba(245,158,11,0.1); color:var(--gold); }
+  .tag-competition { background:rgba(239,68,68,0.1); color:var(--red); }
+  .tag-robotic { background:rgba(168,85,247,0.1); color:#c084fc; }
+  .tag-parent { background:rgba(236,72,153,0.1); color:#f472b6; }
+  .news-icon { font-size:24px; margin-bottom:8px; }
+  .news-title { font-family:'Exo 2',sans-serif; font-size:14px; font-weight:700; margin-bottom:6px; line-height:1.4; }
+  .news-desc { font-size:11px; color:var(--text2); line-height:1.7; margin-bottom:14px; }
+  .news-footer { display:flex; align-items:center; justify-content:space-between; }
+  .news-date { font-size:10px; color:var(--text3); }
+  .news-cta { padding:5px 12px; border-radius:6px; font-size:11px; font-weight:600; background:var(--green); color:var(--bg); border:none; cursor:pointer; transition:all .2s; }
+  .news-cta:hover { background:var(--green-light); }
+  .urgent-dot { position:absolute; top:14px; right:14px; width:7px; height:7px; background:var(--red); border-radius:50%; animation:pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+
+  /* ROBOTIC */
+  .robotic-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
+  .robotic-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:18px; }
+  .robotic-level { display:inline-block; padding:2px 9px; border-radius:12px; font-size:9px; font-weight:700; margin-bottom:10px; }
+
+  /* ROLES */
+  .role-chip { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:12px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+  .role-student { background:rgba(34,197,94,0.12); color:var(--green); }
+  .role-parent { background:rgba(59,130,246,0.12); color:#60a5fa; }
+  .role-mentor { background:rgba(245,158,11,0.12); color:var(--gold); }
+  .role-volunteer { background:rgba(236,72,153,0.12); color:#f472b6; }
+  .role-teacher { background:rgba(168,85,247,0.12); color:#c084fc; }
+  .role-manager { background:rgba(239,68,68,0.12); color:var(--red); }
+  .role-admin { background:rgba(168,85,247,0.2); color:#c084fc; }
+  .avatar-mentor { background:linear-gradient(135deg,#d97706,#f59e0b); color:var(--bg); }
+  .avatar-volunteer { background:linear-gradient(135deg,#be185d,#ec4899); color:#fff; }
+  .avatar-teacher { background:linear-gradient(135deg,#7c3aed,#a855f7); color:#fff; }
+  .avatar-manager { background:linear-gradient(135deg,#b91c1c,#ef4444); color:#fff; }
+
+  /* ADMIN USER MGMT */
+  .user-mgmt-row { display:flex; align-items:center; gap:12px; padding:13px 0; border-bottom:1px solid var(--border); }
+  .user-mgmt-row:last-child { border-bottom:none; }
+  .pending-badge { padding:2px 8px; border-radius:12px; font-size:9px; font-weight:700; text-transform:uppercase; }
+  .pending-status-pending { background:rgba(245,158,11,0.15); color:var(--gold); }
+  .pending-status-approved { background:rgba(34,197,94,0.15); color:var(--green); }
+  .pending-status-rejected { background:rgba(239,68,68,0.15); color:var(--red); }
+  .action-btn { padding:4px 10px; border-radius:5px; font-size:10px; font-weight:700; cursor:pointer; border:none; transition:all .2s; }
+  .action-approve { background:rgba(34,197,94,0.12); color:var(--green); }
+  .action-approve:hover { background:var(--green); color:var(--bg); }
+  .action-reject { background:rgba(239,68,68,0.1); color:var(--red); }
+  .action-reject:hover { background:var(--red); color:#fff; }
+  .action-edit { background:rgba(245,158,11,0.1); color:var(--gold); }
+  .action-edit:hover { background:var(--gold); color:var(--bg); }
+
+  /* MODAL CREATE USER */
+  .create-user-modal { position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:300; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .create-user-box { background:var(--card); border:1px solid var(--border2); border-radius:var(--radius-lg); width:100%; max-width:480px; max-height:90vh; overflow-y:auto; padding:28px; }
+
+  /* PROGRESS MINI */
+  .progress-mini { height:4px; background:var(--bg3); border-radius:2px; overflow:hidden; }
+  .progress-mini-fill { height:100%; background:linear-gradient(90deg,var(--green-dark),var(--green)); border-radius:2px; }
+
+  @media (max-width: 768px) {
+    .nav-links { display:none; }
+    .stats-bar { flex-wrap:wrap; }
+    .grid-2, .grid-3 { grid-template-columns:1fr; }
+    .sidebar { transform:translateX(-100%); }
+    .sidebar.open { transform:translateX(0); }
+    .main { margin-left:0; }
+    .nav,.hero,.section { padding-left:20px; padding-right:20px; }
+    .hero { padding-top:50px; padding-bottom:36px; }
+    .content { padding:16px; }
+    .chatbot-window { width:calc(100vw - 32px); right:16px; bottom:80px; }
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  .fade-in { animation:fadeIn .3s ease; }
+  .slide-up { animation:slideUp .3s ease; }
+`;
+
+
+// ─── NEWS SECTION ─────────────────────────────────────────────────────────────
+function NewsSection({ onNavigate }) {
+  const [filter, setFilter] = useState("all");
+  const [applying, setApplying] = useState(null);
+  const tagFilters = [
+    {id:"all",label:"Tất cả"},
+    {id:"course",label:"🎓 Khóa học"},
+    {id:"event",label:"🎪 Sự kiện"},
+    {id:"recruit_volunteer",label:"🙋 Tuyển CTV"},
+    {id:"recruit_parent",label:"👨‍👩‍👧 Tuyển PH"},
+    {id:"competition",label:"🏆 Thi đấu"},
+    {id:"robotic",label:"🤖 Robotic"},
+    {id:"recruit_competition",label:"⭐ Đội tuyển"},
+  ];
+  const tagClass = {course:"tag-course",event:"tag-event",recruit_volunteer:"tag-volunteer",recruit_parent:"tag-parent",competition:"tag-competition",robotic:"tag-robotic",recruit_competition:"tag-volunteer"};
+  const filtered = filter==="all" ? NEWS_FEED : NEWS_FEED.filter(n=>n.type===filter);
+  const handleCTA = (news) => {
+    if (news.ctaRole==="student"||news.ctaRole==="parent"||news.ctaRole==="volunteer") {
+      setApplying(news);
+    } else {
+      onNavigate("register");
+    }
+  };
+  return (
+    <div className="news-section">
+      <div style={{maxWidth:1100,margin:"0 auto"}}>
+        <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between",marginBottom:20,flexWrap:"wrap",gap:10}}>
+          <div>
+            <div className="section-title" style={{marginBottom:4}}>Tin tức & Thông báo</div>
+            <div className="section-sub" style={{marginBottom:0}}>Cập nhật mới nhất về khóa học, sự kiện, tuyển dụng và hoạt động TrinityX</div>
+          </div>
+        </div>
+        <div className="news-tabs">
+          {tagFilters.map(f=><button key={f.id} className={`news-tab${filter===f.id?" active":""}`} onClick={()=>setFilter(f.id)}>{f.label}</button>)}
+        </div>
+        <div className="news-grid">
+          {filtered.map(n=>(
+            <div key={n.id} className={`news-card${n.urgent?" urgent":""}`}>
+              {n.urgent && <div className="urgent-dot"/>}
+              <div className={`news-tag ${tagClass[n.type]||"tag-event"}`}>{n.tag}</div>
+              <div className="news-icon">{n.icon}</div>
+              <div className="news-title">{n.title}</div>
+              <div className="news-desc">{n.desc}</div>
+              <div className="news-footer">
+                <div className="news-date">📅 {n.date}</div>
+                <button className="news-cta" onClick={()=>handleCTA(n)}>{n.cta}</button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Robotic events section */}
+        <div style={{marginTop:48}}>
+          <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:20,fontWeight:800,marginBottom:6}}>🤖 Lịch thi đấu Robotic 2026</div>
+          <div style={{fontSize:13,color:"var(--text2)",marginBottom:20}}>Các giải đấu robotic lớn trong năm — TrinityX đồng hành và hỗ trợ học sinh tham gia</div>
+          <div className="robotic-grid">
+            {ROBOTIC_EVENTS.map(r=>(
+              <div key={r.id} className="robotic-card" style={{borderLeft:`3px solid ${r.color}`}}>
+                <div className="robotic-level" style={{background:`${r.color}18`,color:r.color}}>{r.level}</div>
+                <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:14,fontWeight:700,marginBottom:6,lineHeight:1.4}}>{r.name}</div>
+                <div style={{fontSize:11,color:"var(--text2)",marginBottom:8,lineHeight:1.6}}>{r.desc}</div>
+                <div style={{fontSize:10,color:"var(--text3)",display:"flex",gap:10,flexWrap:"wrap"}}>
+                  <span>📅 {r.date}</span>
+                  <span>🏅 {r.prize}</span>
+                </div>
+                <div style={{marginTop:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span style={{fontSize:9,color:r.color,fontWeight:700,textTransform:"uppercase",letterSpacing:".5px"}}>{r.org}</span>
+                  <span style={{padding:"2px 8px",borderRadius:10,fontSize:9,fontWeight:700,background:`${r.color}18`,color:r.color}}>{r.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Apply modal */}
+      {applying && (
+        <div className="modal-overlay" onClick={()=>setApplying(null)}>
+          <div className="modal-box" style={{padding:28,maxWidth:420}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontSize:36,textAlign:"center",marginBottom:12}}>{applying.icon}</div>
+            <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:18,fontWeight:800,textAlign:"center",marginBottom:6}}>{applying.title}</div>
+            <div style={{fontSize:13,color:"var(--text2)",textAlign:"center",marginBottom:20,lineHeight:1.6}}>{applying.desc}</div>
+            <div style={{display:"flex",gap:8}}>
+              <button className="btn btn-outline btn-full" onClick={()=>setApplying(null)}>Đóng</button>
+              <button className="btn btn-primary btn-full" onClick={()=>{setApplying(null);onNavigate("register");}}>Đăng ký ngay</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── LANDING PAGE ─────────────────────────────────────────────────────────────
+function FaqItem({ q, a }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`faq-item${open?" open":""}`}>
+      <button className="faq-btn" onClick={()=>setOpen(!open)}>
+        <span className="faq-q">{q}</span>
+        <span className={`faq-plus${open?" open":""}`}>+</span>
+      </button>
+      {open && <div className="faq-a">{a}</div>}
+    </div>
+  );
+}
+
+function Landing({ onNavigate }) {
+  const processSteps = [
+    {icon:"🎯",title:"Chọn đề bài thực tế",desc:"Bài toán từ cuộc sống thật"},
+    {icon:"🔩",title:"Lên vật tư & phân công",desc:"Nhóm 3 HS lập kế hoạch"},
+    {icon:"⚡",title:"Lắp ráp & lập trình",desc:"Thực hành tại TrinityX Lab"},
+    {icon:"📸",title:"Ghi nhận quá trình",desc:"Video, hình ảnh, tư liệu"},
+    {icon:"🏷️",title:"Gắn mã QR truy xuất",desc:"Mỗi sản phẩm có mã định danh"},
+    {icon:"🛒",title:"Bán & nhận 70% doanh thu",desc:"Đăng trên TrinityX Store"},
+  ];
+  const ecosystem = [
+    {icon:"🏫",name:"Trung tâm TrinityX",desc:"Hạt nhân điều phối — nhân sự tinh gọn, hỗ trợ bởi AI 24/7"},
+    {icon:"🔬",name:"TrinityX Lab",desc:"Phòng thực hành đầy đủ thiết bị điện tử, IoT, robot"},
+    {icon:"🏆",name:"Maker Battle Day",desc:"Cuộc thi sáng tạo định kỳ tháng/quý/năm theo cấp"},
+    {icon:"🎪",name:"Free Tech Day",desc:"Sự kiện cuối tuần mở, trải nghiệm công nghệ miễn phí"},
+    {icon:"🛒",name:"TrinityX Store",desc:"Nền tảng thương mại hóa sản phẩm học sinh, QR truy xuất"},
+    {icon:"🏅",name:"Maker Council",desc:"Hội đồng học sinh – phụ huynh – mentor đồng quản trị"},
+  ];
+  const faqs = [
+    {q:"Con tôi bao nhiêu tuổi thì phù hợp?", a:"TrinityX phù hợp với học sinh từ lớp 4 đến lớp 12. Cấp Starter không cần kiến thức nền tảng, phù hợp mọi học sinh mới bắt đầu."},
+    {q:"Phụ huynh theo dõi tiến độ học của con thế nào?", a:"Phụ huynh được cấp tài khoản riêng (mã PH) liên kết với mã học sinh. Xem được sản phẩm, lịch học, TXP Points, thông báo và sao kê quỹ phụ huynh."},
+    {q:"70% doanh thu về học sinh hoạt động thế nào?", a:"Khi sản phẩm bán qua TrinityX Store hoặc sự kiện, hệ thống tự động ghi nhận 70% vào tài khoản học sinh. Ví dụ: sản phẩm 250.000đ → học sinh nhận 175.000đ."},
+    {q:"Học sinh làm ra sản phẩm gì?", a:"Starter: đèn LED, đồng hồ, quạt điều khiển. Creator: IoT (tưới cây WiFi, cảm biến), LED matrix. Innovator: robot, xe RC, drone, tàu thủy — tất cả đều là sản phẩm thật, bán được."},
+    {q:"Hệ thống thi đấu TrinityX như thế nào?", a:"3 cấp: Trung tâm (hàng tháng), Cụm tỉnh (hàng quý), Toàn quốc (hàng năm). Học sinh cấp Creator trở lên được đăng ký. Giải thưởng: TXP Points, huy chương, học bổng."},
+    {q:"TrinityX khác gì trung tâm STEM thông thường?", a:"TrinityX không dạy lý thuyết — học sinh làm sản phẩm thật bán được và kiếm thu nhập thật. Phụ huynh tham gia quản trị qua Maker Council và Quỹ phụ huynh minh bạch. Mô hình có bản quyền của PGS.TS. Doãn Ngọc Hải."},
+  ];
+  return (
+    <div className="landing">
+      <nav className="nav">
+        <div className="nav-logo">
+          <Icon.logo size={42} />
+          <div>
+            <div className="nav-logo-text">TRINITY<span>X</span></div>
+            <div className="nav-logo-sub">Sáng tạo công nghệ phục vụ cuộc sống</div>
+          </div>
+        </div>
+        <div className="nav-links">
+          <a href="#levels" className="nav-link">Chương trình</a>
+          <a href="#model" className="nav-link">Mô hình</a>
+          <a href="#faq" className="nav-link">Phụ huynh</a>
+          <button className="store-nav-btn" onClick={()=>onNavigate("store")}>🛒 <span>TrinityX</span> Store</button>
+        </div>
+        <div className="nav-actions">
+          <button className="btn btn-outline" onClick={()=>onNavigate("login")}>Đăng nhập</button>
+          <button className="btn btn-primary" onClick={()=>onNavigate("register")}>Đăng ký</button>
+        </div>
+      </nav>
+
+      <div className="hero">
+        <div className="hero-badge"><Icon.star /> Hệ sinh thái giáo dục công nghệ — Đổi mới sáng tạo thế hệ mới</div>
+        <h1>Nơi Học Sinh<br /><span>Làm Ra Tương Lai</span></h1>
+        <p>TrinityX là hệ sinh thái giáo dục — công nghệ — cộng đồng, nơi học sinh làm ra sản phẩm thật, bán được, kiếm thu nhập thật và phát triển năng lực sáng tạo toàn diện.</p>
+        <div className="hero-actions">
+          <button className="btn btn-primary" onClick={()=>onNavigate("register")}>Đăng ký học ngay</button>
+          <button className="btn btn-outline" onClick={()=>onNavigate("store")}>🛒 Xem sản phẩm học sinh</button>
+        </div>
+        <div className="stats-bar">
+          {[["500+","Học sinh"],["3","Cấp đào tạo"],["70%","Doanh thu cho HS"],["34","Tỉnh/TP mục tiêu"]].map(([n,l])=>(
+            <div className="stat-item" key={l}><div className="stat-num">{n}</div><div className="stat-label">{l}</div></div>
+          ))}
+        </div>
+      </div>
+
+      <div className="section" id="levels">
+        <div className="section-title">Mô hình đào tạo 3 cấp độ</div>
+        <div className="section-sub">Lộ trình rõ ràng — học sinh tiến từng bước, làm ra sản phẩm thật ở mỗi cấp</div>
+        <div className="levels-grid">
+          {[
+            {cls:"starter",badge:"badge-starter",label:"Cấp độ 1",emoji:"🔦",name:"Starter — Làm quen",desc:"Học sinh mới tiếp cận: lắp ráp đèn LED, quạt, đồng hồ. Cá nhân, không cần kiến thức nền.",sessions:"10 buổi",form:"Cá nhân",out:"Hoàn thành sản phẩm cơ bản",details:["Không cần kiến thức nền tảng","Học từ lớp 4 trở lên","Mentor hướng dẫn 1-1 tại Lab"]},
+            {cls:"creator",badge:"badge-creator",label:"Cấp độ 2",emoji:"💡",name:"Creator — Sáng tạo",desc:"IoT, LED matrix, tưới cây WiFi. Nhóm 3 học sinh, bán sản phẩm thật, tham gia sự kiện.",sessions:"20 buổi",form:"Nhóm 3 học sinh",out:"Bán ≥1 sản phẩm + sự kiện cộng đồng",details:["Hoàn thành Starter mới lên được","Luân phiên vai trò Leader/Lắp ráp/Kiểm thử","Sản phẩm đăng lên TrinityX Store"]},
+            {cls:"innovator",badge:"badge-innovator",label:"Cấp độ 3",emoji:"🤖",name:"Innovator — Đổi mới",desc:"Dự án robot, xe RC, drone. Thi đấu quốc gia, cơ hội trở thành mentor TrinityX.",sessions:"30–60 buổi",form:"Dự án nhóm chuyên sâu",out:"≥3 sản phẩm + Chứng nhận Innovator",details:["Tham gia ≥6 sự kiện cuối tuần","Thi đấu ≥2 cuộc thi cấp tỉnh/quốc gia","Cơ hội trở thành mentor TrinityX"]},
+          ].map(l=>(
+            <div key={l.cls} className={`level-card ${l.cls}`}>
+              <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:12}}>
+                <span style={{fontSize:28}}>{l.emoji}</span>
+                <div className={`level-badge ${l.badge}`}>{l.label}</div>
+              </div>
+              <h3>{l.name}</h3>
+              <p>{l.desc}</p>
+              <div style={{borderTop:"1px solid var(--border)",marginTop:12,paddingTop:12}}>
+                <div className="level-detail">📅 <span>{l.sessions}</span></div>
+                <div className="level-detail">👥 <span>{l.form}</span></div>
+                <div className="level-detail">🎯 <span>{l.out}</span></div>
+              </div>
+              <div style={{marginTop:10}}>
+                {l.details.map((d,i)=>(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:"var(--text2)",marginBottom:4}}>
+                    <span style={{color:"var(--green)",flexShrink:0}}><Icon.check/></span>{d}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <NewsSection onNavigate={onNavigate}/>
+
+      <div id="model" style={{background:"var(--bg2)",padding:"52px 40px"}}>
+        <div style={{maxWidth:1100,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:36}}>
+            <div className="section-title">Hệ sinh thái TrinityX</div>
+            <div className="section-sub" style={{marginBottom:0}}>6 thành phần kết nối — TrinityX HQ điều phối · Chi nhánh triển khai · Trường học hợp tác</div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:14,marginBottom:40}}>
+            {ecosystem.map((e,i)=>(
+              <div key={i} style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:"var(--radius)",padding:20,display:"flex",gap:14,alignItems:"flex-start"}}>
+                <span style={{fontSize:26,flexShrink:0}}>{e.icon}</span>
+                <div>
+                  <div style={{fontFamily:"'Exo 2',sans-serif",fontWeight:700,fontSize:14,marginBottom:5}}>{e.name}</div>
+                  <div style={{fontSize:12,color:"var(--text2)",lineHeight:1.6}}>{e.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{textAlign:"center",marginBottom:24}}>
+            <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:18,fontWeight:800,marginBottom:6}}>Quy trình 6 bước tạo sản phẩm & thương mại hóa</div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10,marginBottom:28}}>
+            {processSteps.map((s,i)=>(
+              <div key={i} style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:"var(--radius)",padding:"16px 14px",textAlign:"center",position:"relative"}}>
+                <div style={{position:"absolute",top:-9,left:"50%",transform:"translateX(-50%)",background:"var(--green)",color:"var(--bg)",fontFamily:"'Exo 2',sans-serif",fontWeight:800,fontSize:10,width:20,height:20,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}}>{i+1}</div>
+                <div style={{fontSize:24,marginBottom:8,marginTop:2}}>{s.icon}</div>
+                <div style={{fontWeight:700,fontSize:12,marginBottom:4}}>{s.title}</div>
+                <div style={{fontSize:10,color:"var(--text2)"}}>{s.desc}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{background:"linear-gradient(135deg,rgba(34,197,94,0.08),rgba(245,158,11,0.06))",border:"1px solid rgba(34,197,94,0.25)",borderRadius:"var(--radius-lg)",padding:"24px 28px",display:"flex",gap:28,alignItems:"center",flexWrap:"wrap"}}>
+            <div style={{flex:1,minWidth:200}}>
+              <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:16,fontWeight:800,marginBottom:7}}>Phân chia doanh thu minh bạch</div>
+              <div style={{fontSize:13,color:"var(--text2)",lineHeight:1.7}}>Mọi sản phẩm bán ra đều được chia tự động. Học sinh làm ra — học sinh hưởng lợi nhiều nhất. Hệ thống ledger nội bộ ghi nhận đầy đủ, đối soát được.</div>
+            </div>
+            <div style={{display:"flex",gap:16,flexShrink:0}}>
+              {[["70%","Học sinh","var(--green)"],["30%","Trung tâm","var(--gold)"]].map(([pct,lbl,clr])=>(
+                <div key={lbl} style={{textAlign:"center",background:"var(--card)",border:`1px solid ${clr}40`,borderRadius:"var(--radius)",padding:"16px 24px"}}>
+                  <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:32,fontWeight:900,color:clr}}>{pct}</div>
+                  <div style={{fontSize:12,color:"var(--text2)",marginTop:3}}>{lbl}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="section">
+        <div className="section-title">Triết lý TrinityX</div>
+        <div className="section-sub">Con người – Công nghệ – Cuộc sống &nbsp;|&nbsp; Mind – Hand – Heart (Tư duy – Thực hành – Trách nhiệm)</div>
+        <div className="messages-grid">
+          {[
+            <>TrinityX không phải lớp học thêm — mà là hệ sinh thái giáo dục nơi học sinh làm ra <strong>sản phẩm thật, bán được, kiếm thu nhập thật.</strong></>,
+            <>Không ai có thể dự đoán tương lai. Nhưng nếu học sinh <strong>biết sáng tạo và dám làm,</strong> con sẽ luôn tìm được chỗ đứng.</>,
+            <>Mô hình 3 cấp Starter → Creator → Innovator: <strong>thực hành thật · sản phẩm thật · phần thưởng thật.</strong></>,
+            <>Phụ huynh đồng hành qua Maker Council và Quỹ phụ huynh minh bạch. <strong>Cộng đồng cùng xây dựng nền giáo dục thực hành Việt Nam.</strong></>,
+          ].map((msg,i)=>(
+            <div key={i} className="msg-card"><p>{msg}</p></div>
+          ))}
+        </div>
+      </div>
+
+      <div id="faq" style={{background:"var(--bg2)",padding:"52px 40px"}}>
+        <div style={{maxWidth:780,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:32}}>
+            <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.3)",borderRadius:20,padding:"5px 14px",fontSize:11,color:"var(--gold)",marginBottom:10}}>👨‍👩‍👧 Dành cho Phụ huynh</div>
+            <div className="section-title">Phụ huynh cần biết</div>
+            <div className="section-sub" style={{marginBottom:0}}>Những câu hỏi thường gặp khi đăng ký cho con học tại TrinityX</div>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {faqs.map((f,i)=><FaqItem key={i} q={f.q} a={f.a}/>)}
+          </div>
+          <div style={{marginTop:36,background:"linear-gradient(135deg,rgba(34,197,94,0.08),rgba(59,130,246,0.06))",border:"1px solid rgba(34,197,94,0.25)",borderRadius:"var(--radius-lg)",padding:"28px",textAlign:"center"}}>
+            <div style={{fontSize:28,marginBottom:10}}>👨‍👩‍👧‍👦</div>
+            <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:18,fontWeight:800,marginBottom:8}}>Đăng ký cho con — nhận tài khoản phụ huynh</div>
+            <div style={{fontSize:13,color:"var(--text2)",lineHeight:1.7,maxWidth:480,margin:"0 auto 20px"}}>Tài khoản phụ huynh liên kết với mã học sinh của con. Theo dõi tiến độ, sản phẩm, lịch học, TXP Points và Quỹ phụ huynh ngay trên điện thoại.</div>
+            <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+              <button className="btn btn-primary" onClick={()=>onNavigate("register")}>Đăng ký ngay</button>
+              <button className="btn btn-outline" onClick={()=>onNavigate("login")}>Đăng nhập demo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{background:"var(--bg2)",borderTop:"1px solid var(--border)",padding:"28px 40px",textAlign:"center",color:"var(--text3)",fontSize:12}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:9,marginBottom:10}}>
+          <Icon.logo size={32}/><strong style={{fontFamily:"'Exo 2',sans-serif",fontSize:15,color:"var(--text)"}}>TRINITY<span style={{color:"var(--red)"}}>X</span></strong>
+        </div>
+        <div style={{color:"var(--text2)",marginBottom:5}}>CÔNG TY TNHH CÔNG NGHỆ GIÁO DỤC TRINITYX</div>
+        <div>Mã số DN: 0111364757 &nbsp;|&nbsp; TRX-HN01: Hapu, Hà Nội (Trụ sở HQ) &nbsp;|&nbsp; Giám đốc: Trần Thị Ngọc Trâm</div>
+        <div style={{marginTop:3}}>TRX-HN02: Đường Cửa Đình, Xã Thiên Lộc, Đông Anh (Chi nhánh) &nbsp;|&nbsp; GĐ CN: Lưu Tuấn Khanh</div>
+        <div style={{marginTop:3}}>Email: Home@trinityx.net &nbsp;|&nbsp; Tel: 0384101895</div>
+        <div style={{marginTop:9,fontSize:10}}>Chủ sở hữu mô hình: PGS.TS. Doãn Ngọc Hải &nbsp;·&nbsp; TrinityX OS v2.0 &nbsp;·&nbsp; © 2026 TrinityX</div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+function LoginPage({ onLogin, onNavigate }) {
+  const [role, setRole] = useState("student");
+  const [code, setCode] = useState(""); const [pw, setPw] = useState("");
+  const [showPw, setShowPw] = useState(false); const [error, setError] = useState("");
+  const roles = [
+    {id:"student",label:"🎓 Học sinh"},
+    {id:"parent",label:"👨‍👩‍👧 Phụ huynh"},
+    {id:"mentor",label:"💡 Mentor"},
+    {id:"teacher",label:"📚 Thầy cô"},
+    {id:"volunteer",label:"🙋 CTV"},
+    {id:"director",label:"🏢 Giám đốc"},
+    {id:"staff",label:"👔 Nhân viên"},
+    {id:"admin",label:"⚙️ Admin HT"},
+  ];
+  const ROLE_CODES = {
+    student:"hs001", parent:"ph001", mentor:"mentor001",
+    teacher:"teacher001", volunteer:"ctv001", manager:"manager001", admin:"admin001"
+  };
+  const ROLE_PASSWORDS = {
+    student:"123456", parent:"123456", mentor:"mentor123",
+    teacher:"teacher123", volunteer:"ctv123", manager:"manager123", admin:"admin123"
+  };
+  const handleLogin = () => {
+    setError("");
+    const user = MOCK_USERS[code.trim()];
+    if (!user || user.password !== pw) { setError("Mã đăng nhập hoặc mật khẩu không đúng"); return; }
+    if (role === "admin" && user.role !== "admin") { setError("Mã này không phải tài khoản Admin"); return; }
+    else if (role === "director" && user.role !== "director") { setError("Mã này không phải tài khoản Giám đốc"); return; }
+    else if (role === "staff" && user.role !== "staff") { setError("Mã này không phải tài khoản Nhân viên"); return; }
+    else if (role === "mentor" && user.role !== "mentor") { setError("Mã này không phải tài khoản Mentor"); return; }
+    else if (role === "teacher" && user.role !== "teacher") { setError("Mã này không phải tài khoản Thầy/Cô"); return; }
+    else if (role === "volunteer" && user.role !== "volunteer") { setError("Mã này không phải tài khoản CTV"); return; }
+    else if (role === "student" && user.role !== "student") { setError("Mã này không phải tài khoản học sinh"); return; }
+    else if (role === "parent" && user.role !== "parent") { setError("Mã này không phải tài khoản phụ huynh"); return; }
+    onLogin(user);
+  };
+  return (
+    <div className="auth-page">
+      <nav className="nav">
+        <div className="nav-logo" style={{cursor:"pointer"}} onClick={()=>onNavigate("landing")}>
+          <Icon.logo size={40}/><div><div className="nav-logo-text">TRINITY<span>X</span></div><div className="nav-logo-sub">trinityx.net</div></div>
+        </div>
+      </nav>
+      <div className="auth-container">
+        <div className="auth-box">
+          <div className="auth-header"><Icon.logo size={48}/><h2>Đăng nhập TrinityX</h2><p>Chào mừng trở lại hệ sinh thái giáo dục sáng tạo</p></div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",background:"var(--bg2)",borderRadius:9,padding:3,marginBottom:18,gap:2}}>
+            {roles.slice(0,4).map(r=>(
+              <button key={r.id} className={`role-tab ${role===r.id?"active":""}`} style={{fontSize:11,padding:"7px 4px"}} onClick={()=>setRole(r.id)}>{r.label}</button>
+            ))}
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",background:"var(--bg2)",borderRadius:9,padding:3,marginBottom:18,gap:2}}>
+            {roles.slice(4).map(r=>(
+              <button key={r.id} className={`role-tab ${role===r.id?"active":""}`} style={{fontSize:11,padding:"7px 4px"}} onClick={()=>setRole(r.id)}>{r.label}</button>
+            ))}
+          </div>
+          <div className="form-group">
+            <label className="form-label">Mã {role==="student"?"học sinh":role==="parent"?"phụ huynh":"Admin"}</label>
+            <input className="form-input" placeholder={role==="admin"?"admin001":"Nhập mã đăng nhập"} value={code} onChange={e=>setCode(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()}/>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Mật khẩu</label>
+            <div className="input-wrap">
+              <input className="form-input" type={showPw?"text":"password"} placeholder="Nhập mật khẩu" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()}/>
+              <button className="input-eye" onClick={()=>setShowPw(!showPw)}>{showPw?<Icon.eyeOff/>:<Icon.eye/>}</button>
+            </div>
+          </div>
+          {error && <div className="form-error">{error}</div>}
+          <button className="btn btn-primary btn-full" onClick={handleLogin}>Đăng nhập</button>
+          <div className="demo-hint">
+            <strong>Demo:</strong> HS: <strong>hs001</strong>/123456 · PH: <strong>ph001</strong>/123456 · Mentor: <strong>mentor001</strong>/mentor123 · CTV: <strong>ctv001</strong>/ctv123<br/>
+            GĐ HQ: <strong>director001</strong>/director123 · GĐ CN: <strong>director002</strong>/director123 · NV: <strong>staff001–004</strong>/staff123 · Admin: <strong>admin001</strong>/admin123
+          </div>
+          <div className="auth-footer">Chưa có tài khoản? <a onClick={()=>onNavigate("register")}>Đăng ký ngay</a></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RegisterPage({ onNavigate, onUpdatePending, pendingData }) {
+  const [step, setStep] = useState(1); const [role, setRole] = useState("student");
+  const [form, setForm] = useState({name:"",email:"",phone:"",center:"TRX-HN02",parentCode:"",password:"",confirm:""});
+  const [success, setSuccess] = useState(false);
+  const upd=(k,v)=>setForm(f=>({...f,[k]:v}));
+  if (success) return (
+    <div className="auth-page"><div className="auth-container"><div className="auth-box" style={{textAlign:"center"}}>
+      <div style={{fontSize:56,marginBottom:14}}>🎉</div>
+      <h2 style={{marginBottom:7}}>Đăng ký thành công!</h2>
+      <p style={{color:"var(--text2)",marginBottom:14}}>Tài khoản đang xét duyệt. TrinityX sẽ liên hệ trong 24h.</p>
+      <div style={{fontSize:12,color:"var(--text3)"}}>Đang chuyển đến trang đăng nhập...</div>
+    </div></div></div>
+  );
+  return (
+    <div className="auth-page">
+      <nav className="nav"><div className="nav-logo" style={{cursor:"pointer"}} onClick={()=>onNavigate("landing")}><Icon.logo size={40}/><div><div className="nav-logo-text">TRINITY<span>X</span></div><div className="nav-logo-sub">trinityx.net</div></div></div></nav>
+      <div className="auth-container">
+        <div className="auth-box">
+          <div className="auth-header"><Icon.logo size={48}/><h2>Đăng ký TrinityX</h2><p>Tham gia hệ sinh thái giáo dục sáng tạo</p></div>
+          {step===1 && <>
+            <div className="role-tabs">
+              <button className={`role-tab ${role==="student"?"active":""}`} onClick={()=>setRole("student")}>🎓 Học sinh</button>
+              <button className={`role-tab ${role==="parent"?"active":""}`} onClick={()=>setRole("parent")}>👨‍👩‍👧 Phụ huynh</button>
+            </div>
+            <div className="form-group"><label className="form-label">Họ và tên</label><input className="form-input" placeholder="Nhập họ tên đầy đủ" value={form.name} onChange={e=>upd("name",e.target.value)}/></div>
+            <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" placeholder="email@example.com" value={form.email} onChange={e=>upd("email",e.target.value)}/></div>
+            <div className="form-group"><label className="form-label">Số điện thoại</label><input className="form-input" placeholder="0xxx xxx xxx" value={form.phone} onChange={e=>upd("phone",e.target.value)}/></div>
+            <div className="form-group">
+              <label className="form-label">Trung tâm TrinityX</label>
+              <select className="form-input" value={form.center} onChange={e=>upd("center",e.target.value)}>
+                <option value="TRX-HN01">TrinityX Thanh Xuân (TRX-HN01)</option>
+                <option value="TRX-HN02">TrinityX Đông Anh (TRX-HN02)</option>
+              </select>
+            </div>
+            {role==="student" && <div className="form-group"><label className="form-label">Mã phụ huynh (nếu có)</label><input className="form-input" placeholder="Nhập mã PH để liên kết" value={form.parentCode} onChange={e=>upd("parentCode",e.target.value)}/></div>}
+            <button className="btn btn-primary btn-full" onClick={()=>setStep(2)} disabled={!form.name||!form.email}>Tiếp theo →</button>
+          </>}
+          {step===2 && <>
+            <div className="form-group"><label className="form-label">Mật khẩu</label><input className="form-input" type="password" placeholder="Ít nhất 6 ký tự" value={form.password} onChange={e=>upd("password",e.target.value)}/></div>
+            <div className="form-group">
+              <label className="form-label">Xác nhận mật khẩu</label>
+              <input className="form-input" type="password" placeholder="Nhập lại mật khẩu" value={form.confirm} onChange={e=>upd("confirm",e.target.value)}/>
+              {form.confirm && form.password!==form.confirm && <div className="form-error">Mật khẩu không khớp</div>}
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <button className="btn btn-ghost btn-full" onClick={()=>setStep(1)}>← Quay lại</button>
+              <button className="btn btn-primary btn-full" onClick={()=>{
+                if(onUpdatePending && pendingData) {
+                  const newEntry = {id:"p"+Date.now(),name:form.name,role,email:form.email,phone:form.phone,center:form.center,msg:"Đăng ký qua form",date:new Date().toLocaleDateString("vi-VN"),status:"pending"};
+                  onUpdatePending([...(pendingData||[]), newEntry]);
+                }
+                setSuccess(true);
+              }} disabled={!form.password||form.password!==form.confirm}>Đăng ký</button>
+            </div>
+          </>}
+          <div className="auth-footer">Đã có tài khoản? <a onClick={()=>onNavigate("login")}>Đăng nhập</a></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─── CHATBOT ─────────────────────────────────────────────────────────────────
+function Chatbot() {
+  const [open, setOpen] = useState(false);
+  const [msgs, setMsgs] = useState([{from:"bot",text:"Xin chào! Tôi là AI hỗ trợ TrinityX 24/7 🤖\nBạn muốn hỏi gì về chương trình học, sự kiện hay TXP Points?"}]);
+  const [input, setInput] = useState("");
+  const suggestions = ["Chương trình học","TXP Points","Doanh thu 70%","Thi đấu","Địa chỉ TrinityX"];
+  const messagesEndRef = useRef(null);
+  const getReply = (q) => {
+    const lq = q.toLowerCase();
+    for (const [kw, ans] of Object.entries(CHATBOT_KNOWLEDGE)) {
+      if (lq.includes(kw)) return ans;
+    }
+    return "Tôi chưa có thông tin về câu hỏi này. Bạn có thể liên hệ trực tiếp TrinityX qua:\n📞 0384101895\n📧 Home@trinityx.net\nhoặc thử hỏi: chương trình học, TXP Points, doanh thu, thi đấu, địa chỉ.";
+  };
+  const send = (text) => {
+    const q = text || input.trim();
+    if (!q) return;
+    setMsgs(m=>[...m,{from:"user",text:q}]);
+    setInput("");
+    setTimeout(()=>{
+      setMsgs(m=>[...m,{from:"bot",text:getReply(q)}]);
+    }, 600);
+  };
+  useEffect(()=>{ messagesEndRef.current?.scrollIntoView({behavior:"smooth"}); },[msgs]);
+  return (
+    <>
+      {open && (
+        <div className="chatbot-window slide-up">
+          <div className="chatbot-header">
+            <div className="chatbot-avatar">🤖</div>
+            <div><div className="chatbot-title">TrinityX AI Assistant</div><div className="chatbot-sub">● Online 24/7</div></div>
+            <button onClick={()=>setOpen(false)} style={{marginLeft:"auto",background:"none",border:"none",color:"var(--text3)",cursor:"pointer",fontSize:18}}>×</button>
+          </div>
+          <div className="chatbot-messages">
+            {msgs.map((m,i)=>(
+              <div key={i} className={m.from==="bot"?"msg-bot":"msg-user"} style={{whiteSpace:"pre-line"}}>{m.text}</div>
+            ))}
+            <div ref={messagesEndRef}/>
+          </div>
+          <div className="chatbot-suggestions">
+            {suggestions.map(s=><button key={s} className="chatbot-sug" onClick={()=>send(s.toLowerCase())}>{s}</button>)}
+          </div>
+          <div className="chatbot-input">
+            <input placeholder="Hỏi gì đó..." value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()}/>
+            <button className="chatbot-send" onClick={()=>send()}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="2" style={{width:14,height:14}}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+            </button>
+          </div>
+        </div>
+      )}
+      <button className="chatbot-fab" onClick={()=>setOpen(!open)}>
+        {open ? <span style={{color:"var(--bg)",fontSize:20}}>×</span> : <svg viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="2" style={{width:22,height:22}}><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>}
+      </button>
+    </>
+  );
+}
+
+// ─── STORE ────────────────────────────────────────────────────────────────────
+function StorePage({ onNavigate }) {
+  const [search, setSearch] = useState(""); const [cat, setCat] = useState("Tất cả");
+  const [selected, setSelected] = useState(null); const [cart, setCart] = useState([]);
+  const [toast, setToast] = useState("");
+  const cats = ["Tất cả","Ánh sáng","IoT","Robot"];
+  const filtered = STORE_PRODUCTS.filter(p=>{
+    const matchCat = cat==="Tất cả" || p.category===cat;
+    const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.student.toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchSearch;
+  });
+  const addCart = (p) => {
+    setCart(c=>[...c,p]);
+    setToast(`Đã thêm "${p.name}" vào giỏ!`);
+    setTimeout(()=>setToast(""),2000);
+    setSelected(null);
+  };
+  const fmtPrice = (p) => p.toLocaleString("vi-VN")+"đ";
+  return (
+    <div style={{minHeight:"100vh"}}>
+      <nav className="nav">
+        <div className="nav-logo" style={{cursor:"pointer"}} onClick={()=>onNavigate&&onNavigate("landing")}>
+          <Icon.logo size={40}/><div><div className="nav-logo-text">TRINITY<span>X</span></div><div className="nav-logo-sub">Sáng tạo công nghệ phục vụ cuộc sống</div></div>
+        </div>
+        <div className="nav-links">
+          <a href="#" className="nav-link" onClick={e=>{e.preventDefault();onNavigate&&onNavigate("landing")}}>← Trang chủ</a>
+        </div>
+        <div className="nav-actions">
+          <div style={{display:"flex",alignItems:"center",gap:7,padding:"7px 14px",background:"var(--card)",border:"1px solid var(--border)",borderRadius:8,fontSize:13}}>
+            🛒 <span style={{color:"var(--green)",fontWeight:700}}>{cart.length}</span>
+          </div>
+          <button className="btn btn-outline" onClick={()=>onNavigate&&onNavigate("login")}>Đăng nhập</button>
+        </div>
+      </nav>
+
+      {toast && <div style={{position:"fixed",top:70,right:24,zIndex:300,background:"var(--green)",color:"var(--bg)",padding:"10px 16px",borderRadius:8,fontSize:13,fontWeight:600,boxShadow:"0 4px 16px rgba(0,0,0,0.3)"}}>{toast}</div>}
+
+      <div className="content" style={{maxWidth:1100,margin:"0 auto",padding:"24px 40px"}}>
+        <div className="store-hero">
+          <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:12}}>
+            <Icon.logo size={48}/>
+            <div>
+              <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:22,fontWeight:900}}>TRINITY<span style={{color:"var(--red)"}}>X</span> Store</div>
+              <div style={{fontSize:12,color:"var(--text2)"}}>Gian hàng sản phẩm do học sinh tạo ra — 70% doanh thu về tay các em</div>
+            </div>
+          </div>
+          <div className="store-stats">
+            {[["8","Sản phẩm"],["23","Đã bán"],["6","Học sinh"],["100%","Thật"]].map(([n,l])=>(
+              <div key={l}><div className="store-stat-n">{n}</div><div className="store-stat-l">{l}</div></div>
+            ))}
+          </div>
+        </div>
+        <div style={{display:"flex",gap:10,marginBottom:18,flexWrap:"wrap",alignItems:"center"}}>
+          <div className="search-box"><Icon.search/><input placeholder="Tìm sản phẩm..." value={search} onChange={e=>setSearch(e.target.value)}/></div>
+          {cats.map(c=><button key={c} className={`filter-btn${cat===c?" active":""}`} onClick={()=>setCat(c)}>{c}</button>)}
+        </div>
+        {filtered.length===0 ? (
+          <div style={{textAlign:"center",padding:"60px 20px",color:"var(--text3)"}}>🔍 Không tìm thấy sản phẩm</div>
+        ) : (
+          <div className="products-grid">
+            {filtered.map(p=>(
+              <div key={p.id} className="product-card" onClick={()=>setSelected(p)}>
+                <div className="product-img" style={{background:`linear-gradient(135deg,${p.color}22,${p.color}10)`}}>
+                  <span>{p.emoji}</span>
+                  <div className={`product-badge ${p.badge==="Bán chạy"?"badge-hot":p.badge==="Mới"?"badge-new":"badge-inno"}`}>{p.badge}</div>
+                </div>
+                <div className="product-body">
+                  <div className="product-name">{p.name}</div>
+                  <div className="product-student">
+                    <div className="product-student-dot">{p.student.charAt(0)}</div>
+                    {p.student} · <span className={`badge badge-${p.level==="Creator"?"warning":p.level==="Innovator"?"red":"success"}`}>{p.level}</span>
+                  </div>
+                  <div className="product-desc">{p.desc}</div>
+                  <div className="product-footer">
+                    <div><div className="product-price">{fmtPrice(p.price)}</div><div className="product-meta">Đã bán: {p.sold} · Còn: {p.stock}</div></div>
+                    <button className="btn-buy" disabled={p.stock===0} onClick={e=>{e.stopPropagation();addCart(p)}}>{p.stock===0?"Hết hàng":"Mua ngay"}</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {selected && (
+        <div className="modal-overlay" onClick={()=>setSelected(null)}>
+          <div className="modal-box" onClick={e=>e.stopPropagation()}>
+            <div className="modal-img" style={{background:`linear-gradient(135deg,${selected.color}25,${selected.color}10)`}}>
+              <span>{selected.emoji}</span>
+              <button onClick={()=>setSelected(null)} style={{position:"absolute",top:12,right:12,background:"rgba(0,0,0,0.4)",border:"none",color:"#fff",width:28,height:28,borderRadius:"50%",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="modal-title">{selected.name}</div>
+              <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+                <span className={`badge badge-${selected.level==="Creator"?"warning":selected.level==="Innovator"?"red":"success"}`}>{selected.level}</span>
+                <span className="badge badge-muted">📍 {selected.center}</span>
+                <span className="badge badge-muted">📦 Còn {selected.stock} sp</span>
+                <span className="badge badge-success">✓ Đã bán {selected.sold}</span>
+              </div>
+              <div style={{fontSize:13,color:"var(--text2)",lineHeight:1.7,marginBottom:14}}>{selected.desc}</div>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12,fontSize:12,color:"var(--text2)"}}>
+                <div className="product-student-dot" style={{width:22,height:22,fontSize:10}}>{selected.student.charAt(0)}</div>
+                Học sinh: <strong style={{color:"var(--text)"}}>{selected.student}</strong>
+              </div>
+              <div className="qr-box"><Icon.qr/> Mã QR truy xuất: <strong>{selected.qr}</strong></div>
+              <div className="modal-footer">
+                <div>
+                  <div className="modal-price">{fmtPrice(selected.price)}</div>
+                  <div style={{fontSize:10,color:"var(--text3)",marginTop:3}}>70% doanh thu → học sinh</div>
+                </div>
+                <button className="btn-buy" style={{padding:"10px 20px",fontSize:13}} disabled={selected.stock===0} onClick={()=>addCart(selected)}>{selected.stock===0?"Hết hàng":"🛒 Thêm vào giỏ"}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      <Chatbot />
+    </div>
+  );
+}
+
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function Dashboard({ user, onLogout, onNavigate, onUpdateUser, pendingData, onUpdatePending, createdUsersData, onUpdateCreatedUsers }) {
+  const [page, setPage] = useState("overview");
+  const [sideOpen, setSideOpen] = useState(false);
+  const isStudent = user.role==="student";
+  const isParent = user.role==="parent";
+  const isAdmin = user.role==="admin";
+  const isMentor = user.role==="mentor";
+  const isVolunteer = user.role==="volunteer";
+  const isTeacher = user.role==="teacher";
+  const isManager = user.role==="manager";
+  const isDirector = user.role==="director";
+  const isStaff = user.role==="staff";
+  const unread = user.notifications.filter(n=>!n.read).length;
+
+  const navItems = isStudent ? [
+    {id:"overview",icon:<Icon.home/>,label:"Tổng quan"},
+    {id:"products",icon:<Icon.box/>,label:"Sản phẩm của tôi"},
+    {id:"competitions",icon:<Icon.trophy/>,label:"Thi đấu"},
+    {id:"schedule",icon:<Icon.calendar/>,label:"Lịch học"},
+    {id:"events",icon:<Icon.award/>,label:"Sự kiện"},
+    {id:"points",icon:<Icon.star/>,label:"TXP Points"},
+    {id:"store",icon:<Icon.store/>,label:"TrinityX Store"},
+    {id:"notifications",icon:<Icon.bell/>,label:"Thông báo"},
+  ] : isParent ? [
+    {id:"overview",icon:<Icon.home/>,label:"Tổng quan"},
+    {id:"child",icon:<Icon.child/>,label:"Hồ sơ học sinh"},
+    {id:"fund",icon:<Icon.wallet/>,label:"Quỹ phụ huynh"},
+    {id:"events",icon:<Icon.award/>,label:"Sự kiện"},
+    {id:"competitions",icon:<Icon.trophy/>,label:"Thi đấu"},
+    {id:"points",icon:<Icon.star/>,label:"TXP Points"},
+    {id:"store",icon:<Icon.store/>,label:"TrinityX Store"},
+    {id:"notifications",icon:<Icon.bell/>,label:"Thông báo"},
+  ] : isMentor ? [
+    {id:"overview",icon:<Icon.home/>,label:"Tổng quan"},
+    {id:"mentoring",icon:<Icon.child/>,label:"Học sinh của tôi"},
+    {id:"schedule",icon:<Icon.calendar/>,label:"Lịch mentoring"},
+    {id:"events",icon:<Icon.award/>,label:"Sự kiện"},
+    {id:"competitions",icon:<Icon.trophy/>,label:"Thi đấu"},
+    {id:"notifications",icon:<Icon.bell/>,label:"Thông báo"},
+  ] : isVolunteer ? [
+    {id:"overview",icon:<Icon.home/>,label:"Tổng quan"},
+    {id:"events",icon:<Icon.award/>,label:"Sự kiện tôi hỗ trợ"},
+    {id:"schedule",icon:<Icon.calendar/>,label:"Lịch trực"},
+    {id:"notifications",icon:<Icon.bell/>,label:"Thông báo"},
+  ] : isTeacher ? [
+    {id:"overview",icon:<Icon.home/>,label:"Tổng quan"},
+    {id:"clubs",icon:<Icon.box/>,label:"CLB của tôi"},
+    {id:"schedule",icon:<Icon.calendar/>,label:"Lịch dạy"},
+    {id:"events",icon:<Icon.award/>,label:"Sự kiện"},
+    {id:"notifications",icon:<Icon.bell/>,label:"Thông báo"},
+  ] : isManager ? [
+    {id:"overview",icon:<Icon.home/>,label:"Tổng quan TT"},
+    {id:"centers",icon:<Icon.settings/>,label:"Vận hành TT"},
+    {id:"users",icon:<Icon.user/>,label:"Nhân sự TT"},
+    {id:"events",icon:<Icon.award/>,label:"Sự kiện"},
+    {id:"reports",icon:<Icon.chart/>,label:"Báo cáo"},
+    {id:"notifications",icon:<Icon.bell/>,label:"Thông báo"},
+  ] : isDirector ? [
+    {id:"overview",icon:<Icon.home/>,label:"Tổng quan TT"},
+    {id:"usermgmt",icon:<Icon.user/>,label:"Quản lý nhân sự"},
+    {id:"centers",icon:<Icon.settings/>,label:"Vận hành"},
+    {id:"events",icon:<Icon.award/>,label:"Sự kiện"},
+    {id:"reports",icon:<Icon.chart/>,label:"Báo cáo"},
+    {id:"notifications",icon:<Icon.bell/>,label:"Thông báo"},
+  ] : isStaff ? [
+    {id:"overview",icon:<Icon.home/>,label:"Trang của tôi"},
+    {id:"events",icon:<Icon.award/>,label:"Sự kiện"},
+    {id:"notifications",icon:<Icon.bell/>,label:"Thông báo"},
+  ] : isAdmin ? [
+    {id:"overview",icon:<Icon.home/>,label:"Dashboard HQ"},
+    {id:"usermgmt",icon:<Icon.user/>,label:"Quản lý người dùng"},
+    {id:"centers",icon:<Icon.settings/>,label:"Cơ sở & vận hành"},
+    {id:"events",icon:<Icon.award/>,label:"Sự kiện"},
+    {id:"competitions",icon:<Icon.trophy/>,label:"Thi đấu"},
+    {id:"reports",icon:<Icon.chart/>,label:"Báo cáo"},
+    {id:"notifications",icon:<Icon.bell/>,label:"Thông báo"},
+  ] : [];
+
+  const pageTitles = {
+    overview:"Tổng quan",products:"Sản phẩm của tôi",competitions:"Thi đấu",
+    schedule:"Lịch học",events:"Sự kiện TrinityX",points:"TXP Points",
+    notifications:"Thông báo",child:"Hồ sơ học sinh",fund:"Quỹ phụ huynh",
+    store:"TrinityX Store",centers:"Vận hành & Cơ sở",reports:"Báo cáo",
+    usermgmt:"Quản lý nhân sự & người dùng",users:"Nhân sự trung tâm",
+    mentoring:"Học sinh của tôi",clubs:"CLB của tôi",
+  };
+
+  const renderContent = () => {
+    if (page==="overview") {
+      if (isStudent) return <StudentOverview user={user} setPage={setPage}/>;
+      if (isParent) return <ParentOverview user={user} child={MOCK_USERS[user.childCode]} setPage={setPage}/>;
+      if (isMentor) return <MentorOverview user={user}/>;
+      if (isVolunteer) return <VolunteerOverview user={user}/>;
+      if (isTeacher) return <TeacherOverview user={user}/>;
+      if (isManager||isDirector) return <DirectorOverview user={user}/>;
+      if (isStaff) return <StaffOverview user={user}/>;
+      return <AdminOverview/>;
+    }
+    if (page==="products" && isStudent) return <ProductsPage user={user}/>;
+    if (page==="schedule") return <SchedulePage user={user}/>;
+    if (page==="events") return <EventsPage/>;
+    if (page==="competitions") return <CompetitionsPage user={user}/>;
+    if (page==="points") return <PointsPage user={isParent&&MOCK_USERS[user.childCode]?MOCK_USERS[user.childCode]:user} isParent={isParent}/>;
+    if (page==="notifications") return <NotificationsPage user={user}/>;
+    if (page==="child" && isParent) return <ChildPage child={MOCK_USERS[user.childCode]} parentCode={user.id}/>;
+    if (page==="fund" && isParent) return <FundPage user={user} onUpdateUser={onUpdateUser}/>;
+    if (page==="store") return <StorePage/>;
+    if (page==="centers") return <CentersPage/>;
+    if (page==="reports") return <ReportsPage/>;
+    if (page==="usermgmt") return <UserManagementPage directorMode={isDirector} centerCode={user.centerCode} pendingData={pendingData} onUpdatePending={onUpdatePending} createdUsersData={createdUsersData} onUpdateCreatedUsers={onUpdateCreatedUsers}/>;
+    if (page==="users") return <UserManagementPage directorMode managerMode centerCode={user.centerCode} pendingData={pendingData} onUpdatePending={onUpdatePending} createdUsersData={createdUsersData} onUpdateCreatedUsers={onUpdateCreatedUsers}/>;
+    if (page==="mentoring") return <MentoringPage user={user}/>;
+    if (page==="clubs") return <ClubsPage user={user}/>;
+    return null;
+  };
+
+  return (
+    <div className="app">
+      {sideOpen && <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:49}} onClick={()=>setSideOpen(false)}/>}
+      <aside className={`sidebar${sideOpen?" open":""}`}>
+        <div className="sidebar-logo">
+          <div style={{display:"flex",alignItems:"center",gap:9}}>
+            <Icon.logo size={36}/>
+            <div>
+              <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:17,fontWeight:800}}>TRINITY<span style={{color:"var(--red)"}}>X</span></div>
+              <div style={{fontSize:8,color:"var(--gold)",letterSpacing:"1.5px",textTransform:"uppercase"}}>
+                {isAdmin?"TrinityX HQ Admin":isDirector?user.centerCode||"trinityx.net":user.centerCode||"trinityx.net"}
+              </div>
+            </div>
+          </div>
+        </div>
+        <nav className="sidebar-nav">
+          <div className="nav-section">Menu chính</div>
+          {navItems.map(item=>(
+            <button key={item.id} className={`nav-item${page===item.id?" active":""}`} onClick={()=>{setPage(item.id);setSideOpen(false);}}>
+              {item.icon} {item.label}
+              {item.id==="notifications"&&unread>0&&<span style={{marginLeft:"auto",background:"var(--red)",color:"#fff",fontSize:9,fontWeight:700,borderRadius:"20px",padding:"1px 6px"}}>{unread}</span>}
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-footer">
+          <div className="user-info">
+            <div className={`avatar avatar-${user.role}`}>{user.name.charAt(0)}</div>
+            <div>
+              <div className="user-name">{user.name}</div>
+              <div className="user-role">
+                {isStudent?`${user.level} · ${user.grade}`:isParent?"Phụ huynh":isMentor?"Mentor":isVolunteer?"CTV tình nguyện":isTeacher?"Thầy/Cô":isDirector?user.title||"Giám đốc":isStaff?user.title||"Nhân viên":isManager?"Quản lý vận hành":"Admin Hệ thống"}
+              </div>
+            </div>
+          </div>
+          {isStudent&&<div style={{fontSize:10,color:"var(--text3)",padding:"0 11px 8px"}}>{user.userCode}</div>}
+          <button className="nav-item" onClick={onLogout} style={{color:"var(--red)"}}>
+            <Icon.logout/> Đăng xuất
+          </button>
+        </div>
+      </aside>
+
+      <main className="main">
+        <div className="topbar">
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <button style={{background:"none",border:"none",color:"var(--text2)",cursor:"pointer"}} onClick={()=>setSideOpen(!sideOpen)}><Icon.menu/></button>
+            <div className="topbar-title">{pageTitles[page]||page}</div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <button className="notif-btn" onClick={()=>setPage("notifications")}>
+              <Icon.bell/>{unread>0&&<span className="notif-dot"/>}
+            </button>
+            <div className={`avatar avatar-${user.role}`} style={{width:32,height:32,fontSize:12}}>{user.name.charAt(0)}</div>
+          </div>
+        </div>
+        <div className="content">{renderContent()}</div>
+      </main>
+      <Chatbot/>
+    </div>
+  );
+}
+
+// ─── STUDENT OVERVIEW ────────────────────────────────────────────────────────
+function StudentOverview({ user, setPage }) {
+  return <>
+    <div className="page-header">
+      <div className="page-title">Chào, {user.name}! 👋</div>
+      <div className="page-sub">Cấp độ: <strong style={{color:"var(--gold)"}}>{user.level}</strong> · {user.center} · Mã: <span style={{color:"var(--green)"}}>{user.userCode}</span></div>
+    </div>
+    <div className="cards-grid">
+      {[
+        {icon:<Icon.star/>,cls:"icon-green",val:user.txpPoints,lbl:"TXP Points",color:"var(--green)"},
+        {icon:<Icon.box/>,cls:"icon-gold",val:user.productsCreated,lbl:"Sản phẩm đã tạo"},
+        {icon:<Icon.chart/>,cls:"icon-red",val:user.productsSold,lbl:"Sản phẩm đã bán"},
+        {icon:<Icon.award/>,cls:"icon-blue",val:user.eventsJoined,lbl:"Sự kiện tham gia"},
+      ].map((c,i)=>(
+        <div key={i} className="stat-card">
+          <div className={`stat-icon ${c.cls}`}>{c.icon}</div>
+          <div><div className="stat-card-val" style={c.color?{color:c.color}:{}}>{c.val}</div><div className="stat-card-label">{c.lbl}</div></div>
+        </div>
+      ))}
+    </div>
+    <div className="grid-3">
+      <div>
+        <div className="card" style={{marginBottom:16}}>
+          <div className="card-title">Tiến độ học tập</div>
+          {[{label:"Starter",pct:user.progress.starter,cls:"fill-green"},{label:"Creator",pct:user.progress.creator,cls:"fill-gold"},{label:"Innovator",pct:user.progress.innovator,cls:"fill-red"}].map(p=>(
+            <div className="progress-wrap" key={p.label}>
+              <div className="progress-info"><span style={{fontSize:12}}>{p.label}</span><span style={{color:"var(--text3)",fontSize:11}}>{p.pct}%</span></div>
+              <div className="progress-bar"><div className={`progress-fill ${p.cls}`} style={{width:`${p.pct}%`}}/></div>
+            </div>
+          ))}
+        </div>
+        <div className="card" style={{marginBottom:16}}>
+          <div className="card-title">Nhóm học của tôi</div>
+          <div style={{background:"var(--bg2)",borderRadius:8,padding:14,border:"1px solid var(--border)"}}>
+            <div style={{fontWeight:700,fontSize:13,marginBottom:8}}>{user.group.name}</div>
+            {user.group.members.map((m,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,fontSize:12}}>
+                <div style={{width:24,height:24,borderRadius:"50%",background:"linear-gradient(135deg,var(--green-dark),var(--green))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:"var(--bg)",flexShrink:0}}>{m.charAt(0)}</div>
+                <span style={{color:"var(--text2)"}}>{m}</span>
+                {m===user.name&&<span className="badge badge-success" style={{marginLeft:"auto"}}>{user.group.role}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-title">Sản phẩm gần đây <span onClick={()=>setPage("products")} style={{cursor:"pointer",color:"var(--green)"}}>Xem tất cả →</span></div>
+          <table className="table"><thead><tr><th>Sản phẩm</th><th>Trạng thái</th><th>Giá</th></tr></thead>
+            <tbody>{user.products.map(p=>(
+              <tr key={p.id}>
+                <td style={{fontWeight:500}}>{p.name}</td>
+                <td><span className={`badge ${p.status==="Đã bán"?"badge-success":p.status==="Trưng bày"?"badge-warning":"badge-muted"}`}>{p.status}</span></td>
+                <td style={{color:"var(--green)"}}>{p.price}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div className="card" style={{marginBottom:16}}>
+          <div className="txp-display">
+            <div className="txp-num">{user.txpPoints}</div>
+            <div className="txp-label">TXP Points</div>
+          </div>
+          <div style={{fontSize:11,color:"var(--text2)",textAlign:"center",lineHeight:1.6}}>
+            Cần <strong style={{color:"var(--gold)"}}>{500-user.txpPoints} điểm nữa</strong> để đạt cấp Innovator
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-title">Lịch tuần này</div>
+          {user.schedule.map((s,i)=>(
+            <div className="schedule-item" key={i}>
+              <div><div className="schedule-day">{s.day}</div><div className="schedule-time">{s.time}</div></div>
+              <div><div className="schedule-subject">{s.subject}</div><div className="schedule-room">{s.room}</div></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </>;
+}
+
+// ─── PARENT OVERVIEW ──────────────────────────────────────────────────────────
+function ParentOverview({ user, child, setPage }) {
+  return <>
+    <div className="page-header">
+      <div className="page-title">Chào, {user.name}! 👋</div>
+      <div className="page-sub">Mã PH: <strong style={{color:"var(--green)"}}>{user.id.toUpperCase()}</strong> · Trung tâm: {user.centerCode} · Học sinh: {child?.name}</div>
+    </div>
+    {child && <>
+      <div className="cards-grid">
+        {[
+          {icon:<Icon.star/>,cls:"icon-green",val:child.txpPoints,lbl:"TXP Points của con",color:"var(--green)"},
+          {icon:<Icon.box/>,cls:"icon-gold",val:child.productsCreated,lbl:"Sản phẩm đã tạo"},
+          {icon:<Icon.award/>,cls:"icon-blue",val:child.eventsJoined,lbl:"Sự kiện tham gia"},
+          {icon:<Icon.wallet/>,cls:"icon-gold",val:`${user.fund.balance.toLocaleString("vi-VN")}đ`,lbl:"Quỹ phụ huynh"},
+        ].map((c,i)=>(
+          <div key={i} className="stat-card">
+            <div className={`stat-icon ${c.cls}`}>{c.icon}</div>
+            <div><div className="stat-card-val" style={c.color?{color:c.color,fontSize:typeof c.val==="string"&&c.val.length>8?18:24}:{}}>{c.val}</div><div className="stat-card-label">{c.lbl}</div></div>
+          </div>
+        ))}
+      </div>
+      <div className="grid-2">
+        <div>
+          <div className="card" style={{marginBottom:16}}>
+            <div className="card-title">Tiến độ học tập — {child.name} <span onClick={()=>setPage("child")} style={{cursor:"pointer",color:"var(--green)"}}>Chi tiết →</span></div>
+            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
+              <div className="avatar avatar-student" style={{width:44,height:44,fontSize:16}}>{child.name.charAt(0)}</div>
+              <div>
+                <div style={{fontWeight:700,fontSize:14}}>{child.name}</div>
+                <div style={{fontSize:12,color:"var(--text2)"}}>{child.grade} · {child.school}</div>
+                <span className="badge badge-warning" style={{marginTop:4}}>{child.level}</span>
+              </div>
+            </div>
+            {[{label:"Starter",pct:child.progress.starter,cls:"fill-green"},{label:"Creator",pct:child.progress.creator,cls:"fill-gold"},{label:"Innovator",pct:child.progress.innovator,cls:"fill-red"}].map(p=>(
+              <div className="progress-wrap" key={p.label}>
+                <div className="progress-info"><span style={{fontSize:12}}>{p.label}</span><span style={{color:"var(--text3)",fontSize:11}}>{p.pct}%</span></div>
+                <div className="progress-bar"><div className={`progress-fill ${p.cls}`} style={{width:`${p.pct}%`}}/></div>
+              </div>
+            ))}
+          </div>
+          <div className="card">
+            <div className="card-title">Sản phẩm của con</div>
+            {child.products.map(p=>(
+              <div key={p.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0",borderBottom:"1px solid var(--border)"}}>
+                <div><div style={{fontSize:12,fontWeight:600}}>{p.name}</div><div style={{fontSize:10,color:"var(--text3)"}}>{p.date}</div></div>
+                <span className={`badge ${p.status==="Đã bán"?"badge-success":p.status==="Trưng bày"?"badge-warning":"badge-muted"}`}>{p.status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="fund-box" style={{marginBottom:16}}>
+            <div style={{fontFamily:"'Exo 2',sans-serif",fontWeight:700,fontSize:14,marginBottom:10}}>💰 Quỹ phụ huynh</div>
+            <div className="fund-balance">{user.fund.balance.toLocaleString("vi-VN")}đ</div>
+            <div style={{fontSize:11,color:"var(--text3)",marginTop:4}}>Số dư hiện tại</div>
+            <div style={{marginTop:12,fontSize:12,color:"var(--text2)"}}>
+              {user.fund.history.slice(0,3).map((h,i)=>(
+                <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+                  <span>{h.desc}</span>
+                  <span style={{color:h.type==="Thu"?"var(--green)":"var(--red)",fontWeight:600}}>{h.type==="Thu"?"+":"-"}{h.amount.toLocaleString("vi-VN")}đ</span>
+                </div>
+              ))}
+            </div>
+            <button className="btn btn-sm" style={{marginTop:12,background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.25)",color:"var(--gold)",borderRadius:7,width:"100%",padding:"7px"}} onClick={()=>setPage("fund")}>Xem chi tiết quỹ →</button>
+          </div>
+          <div className="card">
+            <div className="card-title">Mã liên kết</div>
+            <div style={{background:"rgba(34,197,94,0.05)",border:"1px dashed rgba(34,197,94,0.3)",borderRadius:8,padding:16,textAlign:"center"}}>
+              <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:20,fontWeight:800,color:"var(--green)",letterSpacing:3}}>{user.childCode.toUpperCase()}</div>
+              <div style={{fontSize:10,color:"var(--text3)",marginTop:4}}>Mã học sinh được liên kết</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>}
+  </>;
+}
+
+
+// ─── ADMIN OVERVIEW ──────────────────────────────────────────────────────────
+function AdminOverview() {
+  const centers = [
+    {code:"TRX-HN01",name:"TrinityX HQ – Hapu",type:"HQ",director:"Trần Thị Ngọc Trâm",students:145,products:42,revenue:18500000,status:"Hoạt động"},
+    {code:"TRX-HN02",name:"TrinityX Chi nhánh Đông Anh",type:"Chi nhánh",director:"Lưu Tuấn Khanh",students:98,products:28,revenue:11200000,status:"Hoạt động"},
+  ];
+  const staffSummary = [
+    {role:"Giám đốc",count:2,icon:"👔",color:"var(--gold)"},
+    {role:"Nhân viên Hành chính",count:3,icon:"📋",color:"var(--green)"},
+    {role:"Nhân viên Kỹ thuật",count:4,icon:"🔧",color:"#60a5fa"},
+    {role:"Nhân viên Bán hàng",count:2,icon:"🛒",color:"#f472b6"},
+    {role:"Quản lý Kho",count:2,icon:"📦",color:"var(--gold)"},
+    {role:"Mentor",count:5,icon:"💡",color:"#c084fc"},
+    {role:"CTV tình nguyện",count:8,icon:"🙋",color:"var(--text2)"},
+  ];
+  return <>
+    <div className="page-header">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:10}}>
+        <div>
+          <div className="page-title">TrinityX OS — Dashboard Admin 🏢</div>
+          <div className="page-sub">Admin hệ thống · PGS.TS. Doãn Ngọc Hải · Chủ sở hữu mô hình TrinityX</div>
+        </div>
+        <button className="btn btn-sm" style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",color:"var(--red)",fontSize:11}} onClick={()=>{if(confirm("Xóa toàn bộ dữ liệu thử nghiệm và reset về mặc định?")){Object.keys(localStorage).filter(k=>k.startsWith("trx_")).forEach(k=>localStorage.removeItem(k));window.location.reload();}}}>🗑️ Reset dữ liệu test</button>
+      </div>
+    </div>
+    <div className="cards-grid">
+      {[
+        {icon:<Icon.settings/>,cls:"icon-purple",val:2,lbl:"Cơ sở hoạt động",color:"#c084fc"},
+        {icon:<Icon.child/>,cls:"icon-green",val:243,lbl:"Học sinh",color:"var(--green)"},
+        {icon:<Icon.box/>,cls:"icon-gold",val:70,lbl:"Sản phẩm đã tạo"},
+        {icon:<Icon.chart/>,cls:"icon-red",val:"29.7M",lbl:"Doanh thu (VNĐ)"},
+      ].map((c,i)=>(
+        <div key={i} className="stat-card">
+          <div className={`stat-icon ${c.cls}`}>{c.icon}</div>
+          <div><div className="stat-card-val" style={c.color?{color:c.color}:{}}>{c.val}</div><div className="stat-card-label">{c.lbl}</div></div>
+        </div>
+      ))}
+    </div>
+    <div className="grid-2">
+      <div>
+        <div className="card" style={{marginBottom:16}}>
+          <div className="card-title">Cơ sở TrinityX</div>
+          {centers.map(c=>(
+            <div key={c.code} className="center-row">
+              <div style={{flex:1}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}>
+                  <div className="center-code">{c.code}</div>
+                  <span style={{fontSize:13,fontWeight:600}}>{c.name}</span>
+                  <span style={{fontSize:9,padding:"1px 7px",borderRadius:10,background:c.type==="HQ"?"rgba(245,158,11,0.15)":"rgba(59,130,246,0.12)",color:c.type==="HQ"?"var(--gold)":"#60a5fa",fontWeight:700}}>{c.type}</span>
+                </div>
+                <div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>👤 GĐ: <strong style={{color:"var(--text)"}}>{c.director}</strong></div>
+                <div style={{fontSize:11,color:"var(--text2)"}}>👥 {c.students} HS · 📦 {c.products} SP · 💰 {c.revenue.toLocaleString("vi-VN")}đ</div>
+              </div>
+              <span className="badge badge-success">{c.status}</span>
+            </div>
+          ))}
+        </div>
+        <div className="card">
+          <div className="card-title">Cấu trúc tổ chức</div>
+          {[
+            {icon:"🏛️",label:"TrinityX HQ (Hapu)",desc:"Trụ sở chính · Quản trị toàn hệ thống · GĐ: Trần Thị Ngọc Trâm",color:"var(--gold)"},
+            {icon:"🏫",label:"Chi nhánh Đông Anh",desc:"Chi nhánh · Vận hành độc lập · GĐ: Lưu Tuấn Khanh",color:"var(--green)"},
+            {icon:"📚",label:"Hợp tác Trường học",desc:"CLB & phòng thực hành tại trường (hợp tác)",color:"#60a5fa"},
+          ].map((h,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:"1px solid var(--border)"}}>
+              <span style={{fontSize:18}}>{h.icon}</span>
+              <div>
+                <div style={{fontWeight:600,color:h.color,fontSize:12}}>{h.label}</div>
+                <div style={{fontSize:10,color:"var(--text3)"}}>{h.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <div className="card" style={{marginBottom:16}}>
+          <div className="card-title">Nhân sự toàn hệ thống</div>
+          {staffSummary.map((s,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid var(--border)"}}>
+              <span style={{fontSize:16}}>{s.icon}</span>
+              <span style={{flex:1,fontSize:12,color:"var(--text2)"}}>{s.role}</span>
+              <span style={{fontFamily:"'Exo 2',sans-serif",fontWeight:700,color:s.color,fontSize:13}}>{s.count}</span>
+            </div>
+          ))}
+        </div>
+        <div className="card">
+          <div className="card-title">Thông tin hệ thống</div>
+          {[
+            ["Chủ sở hữu mô hình","PGS.TS. Doãn Ngọc Hải"],
+            ["Admin hệ thống","admin@trinityx.net"],
+            ["Phiên bản","TrinityX OS v2.0"],
+            ["Tài liệu kỹ thuật","TRX-SRS-1.0"],
+            ["Mã số DN","0111364757"],
+          ].map(([k,v])=>(
+            <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--border)",fontSize:11}}>
+              <span style={{color:"var(--text2)"}}>{k}</span><span style={{fontWeight:600,color:"var(--green)"}}>{v}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </>;
+}
+
+// ─── COMPETITIONS PAGE ───────────────────────────────────────────────────────
+function CompetitionsPage({ user }) {
+  const [activeTab, setActiveTab] = useState("list");
+  const isStudent = user.role==="student";
+  const myComps = isStudent ? user.competitions : [];
+  const levelColor = {Trung_tâm:"comp-center","Cụm tỉnh":"comp-province","Toàn quốc":"comp-national"};
+  return <>
+    <div className="page-header">
+      <div className="page-title">Thi đấu</div>
+      <div className="page-sub">3 cấp: Trung tâm (tháng) · Cụm tỉnh (quý) · Toàn quốc (năm)</div>
+    </div>
+    <div style={{display:"flex",gap:8,marginBottom:20}}>
+      {[["list","Tất cả cuộc thi"],["mine","Của tôi"]].map(([id,lbl])=>(
+        <button key={id} className={`filter-btn${activeTab===id?" active":""}`} onClick={()=>setActiveTab(id)}>{lbl}</button>
+      ))}
+    </div>
+    {activeTab==="list" && (
+      <div style={{display:"flex",flexDirection:"column",gap:14}}>
+        {COMPETITIONS.map(c=>(
+          <div key={c.id} className="card" style={{display:"flex",gap:16,alignItems:"flex-start"}}>
+            <div style={{textAlign:"center",minWidth:56}}>
+              <div style={{fontSize:24,marginBottom:4}}>🏆</div>
+              <div style={{fontSize:9,color:"var(--text3)"}}>{c.date.split("/")[0]}/{c.date.split("/")[1]}</div>
+              <div style={{fontSize:9,color:"var(--text3)"}}>T.{c.date.split("/")[1]}</div>
+            </div>
+            <div style={{flex:1}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
+                <span style={{fontFamily:"'Exo 2',sans-serif",fontWeight:700,fontSize:15}}>{c.name}</span>
+                <span className={`comp-level-badge ${c.level==="Trung tâm"?"comp-center":c.level==="Cụm tỉnh"?"comp-province":"comp-national"}`}>{c.level}</span>
+              </div>
+              <div style={{fontSize:12,color:"var(--text2)",marginBottom:6}}>📍 {c.center} · 📅 {c.date}</div>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                <span className={`badge ${c.status==="Đang mở ĐK"?"badge-success":c.status==="Sắp mở"?"badge-warning":"badge-muted"}`}>{c.status}</span>
+                <span style={{fontSize:11,color:"var(--text3)"}}>👥 {c.teams}/{c.maxTeams} đội</span>
+                <span style={{fontSize:11,color:"var(--gold)"}}>🏅 {c.prize}</span>
+              </div>
+              <div className="progress-mini" style={{maxWidth:200,marginTop:8}}>
+                <div className="progress-mini-fill" style={{width:`${(c.teams/c.maxTeams)*100}%`}}/>
+              </div>
+            </div>
+            {isStudent && <button className="btn btn-primary btn-sm" disabled={c.status!=="Đang mở ĐK"}>{c.status==="Đang mở ĐK"?"Đăng ký":"Chưa mở"}</button>}
+          </div>
+        ))}
+      </div>
+    )}
+    {activeTab==="mine" && (
+      <>
+        {myComps.length===0 ? (
+          <div className="card" style={{textAlign:"center",padding:"40px 20px"}}>
+            <div style={{fontSize:40,marginBottom:12}}>🏅</div>
+            <div style={{fontSize:14,fontWeight:600,marginBottom:6}}>Chưa tham gia cuộc thi nào</div>
+            <div style={{fontSize:12,color:"var(--text2)"}}>Đăng ký tham gia cuộc thi để kiếm TXP Points và huy chương!</div>
+          </div>
+        ) : (
+          <div style={{display:"flex",flexDirection:"column",gap:12}}>
+            {myComps.map(c=>(
+              <div key={c.id} className="card" style={{display:"flex",gap:14,alignItems:"center"}}>
+                <div style={{textAlign:"center",minWidth:52}}>
+                  {c.rank ? <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:28,fontWeight:900,color:c.rank===1?"var(--gold)":c.rank===2?"#94a3b8":c.rank===3?"#d97706":"var(--text2)"}}>#{c.rank}</div> : <div style={{fontSize:24}}>⏳</div>}
+                  <div style={{fontSize:9,color:"var(--text3)"}}>Hạng</div>
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:700,fontSize:13,marginBottom:4}}>{c.name}</div>
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                    <span className={`comp-level-badge ${c.level==="Trung tâm"?"comp-center":"comp-province"}`}>{c.level}</span>
+                    <span className={`badge ${c.status==="Đã hoàn thành"?"badge-success":"badge-warning"}`}>{c.status}</span>
+                    {c.points>0 && <span style={{fontSize:11,color:"var(--green)",fontWeight:600}}>+{c.points} TXP</span>}
+                  </div>
+                </div>
+                <div style={{fontSize:11,color:"var(--text3)"}}>{c.date}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </>
+    )}
+  </>;
+}
+
+// ─── FUND PAGE ───────────────────────────────────────────────────────────────
+function FundPage({ user }) {
+  const [showVote, setShowVote] = useState(false);
+  const income = user.fund.history.filter(h=>h.type==="Thu").reduce((s,h)=>s+h.amount,0);
+  const expense = user.fund.history.filter(h=>h.type==="Chi").reduce((s,h)=>s+h.amount,0);
+  return <>
+    <div className="page-header">
+      <div className="page-title">Quỹ phụ huynh đồng hành</div>
+      <div className="page-sub">Minh bạch thu-chi · Phụ huynh biểu quyết · Sao kê đầy đủ</div>
+    </div>
+    <div className="cards-grid" style={{marginBottom:20}}>
+      {[
+        {icon:<Icon.wallet/>,cls:"icon-gold",val:`${user.fund.balance.toLocaleString("vi-VN")}đ`,lbl:"Số dư hiện tại",color:"var(--gold)"},
+        {icon:<Icon.chart/>,cls:"icon-green",val:`${income.toLocaleString("vi-VN")}đ`,lbl:"Tổng thu",color:"var(--green)"},
+        {icon:<Icon.chart/>,cls:"icon-red",val:`${expense.toLocaleString("vi-VN")}đ`,lbl:"Tổng chi",color:"var(--red)"},
+        {icon:<Icon.user/>,cls:"icon-blue",val:12,lbl:"Phụ huynh tham gia"},
+      ].map((c,i)=>(
+        <div key={i} className="stat-card">
+          <div className={`stat-icon ${c.cls}`}>{c.icon}</div>
+          <div><div className="stat-card-val" style={c.color?{color:c.color,fontSize:c.val.length>10?16:24}:{}}>{c.val}</div><div className="stat-card-label">{c.lbl}</div></div>
+        </div>
+      ))}
+    </div>
+    <div className="grid-2">
+      <div className="card">
+        <div className="card-title">Lịch sử thu-chi</div>
+        {user.fund.history.map(h=>(
+          <div key={h.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"11px 0",borderBottom:"1px solid var(--border)"}}>
+            <div style={{display:"flex",gap:10,alignItems:"center"}}>
+              <div style={{width:28,height:28,borderRadius:"50%",background:`rgba(${h.type==="Thu"?"34,197,94":"239,68,68"},0.12)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,flexShrink:0}}>{h.type==="Thu"?"↑":"↓"}</div>
+              <div>
+                <div style={{fontSize:12,fontWeight:600}}>{h.desc}</div>
+                <div style={{fontSize:10,color:"var(--text3)"}}>{h.date}</div>
+              </div>
+            </div>
+            <div style={{fontWeight:700,color:h.type==="Thu"?"var(--green)":"var(--red)",fontSize:13}}>
+              {h.type==="Thu"?"+":"-"}{h.amount.toLocaleString("vi-VN")}đ
+            </div>
+          </div>
+        ))}
+      </div>
+      <div>
+        <div className="card" style={{marginBottom:16}}>
+          <div className="card-title">Biểu quyết chi tiêu</div>
+          <div style={{fontSize:12,color:"var(--text2)",lineHeight:1.7,marginBottom:14}}>
+            Phụ huynh có quyền biểu quyết về các khoản chi lớn từ Quỹ phụ huynh. Mọi quyết định được ghi lại và minh bạch.
+          </div>
+          {!showVote ? (
+            <div style={{background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:8,padding:14,marginBottom:12}}>
+              <div style={{fontWeight:600,fontSize:13,marginBottom:4}}>📢 Đề xuất chi: Mua thêm linh kiện Lab</div>
+              <div style={{fontSize:11,color:"var(--text2)",marginBottom:10}}>Số tiền: 500.000đ · Người đề xuất: Trung tâm Đông Anh</div>
+              <div style={{display:"flex",gap:8}}>
+                <button className="btn btn-primary btn-sm" onClick={()=>setShowVote(true)}>✅ Đồng ý</button>
+                <button className="btn btn-sm" style={{background:"rgba(239,68,68,0.12)",color:"var(--red)",border:"1px solid rgba(239,68,68,0.2)"}} onClick={()=>setShowVote(true)}>❌ Phản đối</button>
+              </div>
+            </div>
+          ) : (
+            <div style={{background:"rgba(34,197,94,0.05)",border:"1px solid var(--green)",borderRadius:8,padding:14,textAlign:"center"}}>
+              <div style={{fontSize:20,marginBottom:6}}>✅</div>
+              <div style={{fontWeight:600,fontSize:13}}>Đã ghi nhận biểu quyết!</div>
+              <div style={{fontSize:11,color:"var(--text2)",marginTop:4}}>Kết quả sẽ được công bố sau 48h</div>
+            </div>
+          )}
+        </div>
+        <div className="card">
+          <div className="card-title">Nguyên tắc quỹ</div>
+          {["Thu từ đóng góp phụ huynh hoặc tài trợ","Chi cho vật tư sự kiện, in ấn, thiết bị","Mọi khoản chi phải có biên nhận","Báo cáo tháng được gửi cho phụ huynh","Phụ huynh biểu quyết khoản chi > 300.000đ"].map((r,i)=>(
+            <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start",padding:"7px 0",borderBottom:"1px solid var(--border)",fontSize:12}}>
+              <span style={{color:"var(--green)",flexShrink:0,marginTop:1}}><Icon.check/></span>
+              <span style={{color:"var(--text2)"}}>{r}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </>;
+}
+
+
+// ─── OTHER PAGES ──────────────────────────────────────────────────────────────
+function ProductsPage({ user }) {
+  const totalRevenue = user.products.reduce((s,p)=>s+p.revenue,0);
+  return <>
+    <div className="page-header"><div className="page-title">Sản phẩm của tôi</div><div className="page-sub">Tổng: {user.products.length} sản phẩm · Doanh thu của tôi: {totalRevenue.toLocaleString("vi-VN")}đ</div></div>
+    <div className="card" style={{marginBottom:16}}>
+      <table className="table">
+        <thead><tr><th>#</th><th>Tên sản phẩm</th><th>Ngày tạo</th><th>Trạng thái</th><th>Giá bán</th><th>Thu nhập (70%)</th><th>Mã QR</th></tr></thead>
+        <tbody>{user.products.map(p=>(
+          <tr key={p.id}>
+            <td style={{color:"var(--text3)"}}>{p.id}</td>
+            <td style={{fontWeight:600}}>{p.name}</td>
+            <td style={{color:"var(--text2)"}}>{p.date}</td>
+            <td><span className={`badge ${p.status==="Đã bán"?"badge-success":p.status==="Trưng bày"?"badge-warning":"badge-muted"}`}>{p.status}</span></td>
+            <td style={{color:"var(--green)",fontWeight:600}}>{p.price}</td>
+            <td style={{color:"var(--gold)",fontWeight:600}}>{p.revenue>0?p.revenue.toLocaleString("vi-VN")+"đ":"—"}</td>
+            <td><span style={{display:"flex",alignItems:"center",gap:3,color:"var(--text3)",fontSize:11}}><Icon.qr/>{p.qr}</span></td>
+          </tr>
+        ))}</tbody>
+      </table>
+    </div>
+    <div style={{padding:14,background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:"var(--radius)",fontSize:12,color:"var(--text2)"}}>
+      💡 <strong style={{color:"var(--green)"}}>Phân chia doanh thu:</strong> 70% thuộc về học sinh, 30% về trung tâm. Mỗi sản phẩm được gắn mã QR truy xuất nguồn gốc trên TrinityX Store.
+    </div>
+  </>;
+}
+
+function SchedulePage({ user }) {
+  const days = ["Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7","CN"];
+  return <>
+    <div className="page-header"><div className="page-title">Lịch học</div><div className="page-sub">Tháng 3/2026 · Trung tâm {user.center}</div></div>
+    <div className="card" style={{marginBottom:16}}>
+      <div className="card-title">Lịch cố định</div>
+      {user.schedule.map((s,i)=>(
+        <div className="schedule-item" key={i}>
+          <div style={{minWidth:76}}><div className="schedule-day">{s.day}</div><div className="schedule-time">{s.time}</div></div>
+          <div><div className="schedule-subject">{s.subject}</div><div className="schedule-room">📍 {s.room}</div></div>
+        </div>
+      ))}
+    </div>
+    <div className="card">
+      <div className="card-title">Lịch tháng 3/2026</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:3,textAlign:"center"}}>
+        {days.map(d=><div key={d} style={{fontSize:10,color:"var(--text3)",padding:"7px 3px",fontWeight:600}}>{d}</div>)}
+        {[...Array(4)].map((_,i)=><div key={"e"+i}/>)}
+        {[...Array(31)].map((_,i)=>{
+          const day=i+1, hasClass=[4,6,11,13,18,20,22,25,27].includes(day), isEvent=[8,15,22].includes(day);
+          return <div key={day} style={{padding:"7px 3px",fontSize:12,borderRadius:5,background:isEvent?"rgba(245,158,11,0.15)":hasClass?"rgba(34,197,94,0.1)":"transparent",color:isEvent?"var(--gold)":hasClass?"var(--green)":"var(--text2)",fontWeight:hasClass||isEvent?700:400}}>{day}</div>;
+        })}
+      </div>
+      <div style={{display:"flex",gap:14,marginTop:14,fontSize:11,color:"var(--text2)"}}>
+        <span style={{display:"flex",alignItems:"center",gap:5}}><span style={{width:9,height:9,background:"rgba(34,197,94,0.4)",borderRadius:2,display:"inline-block"}}/>Ngày học</span>
+        <span style={{display:"flex",alignItems:"center",gap:5}}><span style={{width:9,height:9,background:"rgba(245,158,11,0.4)",borderRadius:2,display:"inline-block"}}/>Sự kiện</span>
+      </div>
+    </div>
+  </>;
+}
+
+function EventsPage() {
+  const [registered, setRegistered] = useState({});
+  return <>
+    <div className="page-header"><div className="page-title">Sự kiện TrinityX</div><div className="page-sub">Tháng 3/2026 · Hoạt động hàng tuần Thứ 7 – Chủ nhật</div></div>
+    <div style={{display:"flex",flexDirection:"column",gap:14}}>
+      {EVENTS.map(ev=>(
+        <div key={ev.id} className="card" style={{display:"flex",gap:16,alignItems:"center"}}>
+          <div className="event-date" style={{minWidth:56,padding:"12px 14px"}}>
+            <div className="event-day">{ev.date.split("/")[0]}</div>
+            <div className="event-month">Tháng {ev.date.split("/")[1]}</div>
+          </div>
+          <div style={{flex:1}}>
+            <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:15,fontWeight:700,marginBottom:3}}>{ev.name}</div>
+            <div style={{fontSize:12,color:"var(--text2)",marginBottom:7}}>📍 {ev.location}</div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              <span className="badge badge-info">{ev.type}</span>
+              {ev.ticketPrice>0 && <span className="badge badge-warning">🎫 {ev.ticketPrice.toLocaleString("vi-VN")}đ</span>}
+              {ev.ticketPrice===0 && <span className="badge badge-success">🎫 Miễn phí</span>}
+              <span style={{fontSize:11,color:"var(--text3)"}}>{ev.enrolled}/{ev.slots} chỗ đã đăng ký</span>
+            </div>
+            <div className="progress-mini" style={{marginTop:8,maxWidth:180}}>
+              <div className="progress-mini-fill" style={{width:`${ev.enrolled/ev.slots*100}%`}}/>
+            </div>
+          </div>
+          <button className={`btn btn-sm ${registered[ev.id]?"btn-ghost":"btn-primary"}`}
+            disabled={ev.enrolled>=ev.slots&&!registered[ev.id]}
+            onClick={()=>setRegistered(r=>({...r,[ev.id]:!r[ev.id]}))}>
+            {registered[ev.id]?"✓ Đã đăng ký":ev.enrolled>=ev.slots?"Hết chỗ":"Đăng ký"}
+          </button>
+        </div>
+      ))}
+    </div>
+  </>;
+}
+
+function PointsPage({ user, isParent }) {
+  const levelInfo = [{name:"Starter",min:0,max:200,color:"var(--green)"},{name:"Creator",min:200,max:500,color:"var(--gold)"},{name:"Innovator",min:500,max:1000,color:"var(--red)"}];
+  const current = levelInfo.find(l=>user.txpPoints>=l.min&&user.txpPoints<l.max)||levelInfo[2];
+  const pct = Math.min(100,((user.txpPoints-current.min)/(current.max-current.min))*100);
+  return <>
+    <div className="page-header"><div className="page-title">TXP Points</div><div className="page-sub">Hệ thống điểm thưởng — ghi nhận mọi đóng góp</div></div>
+    <div className="grid-2">
+      <div>
+        <div className="card" style={{marginBottom:16}}>
+          <div className="txp-display"><div className="txp-num">{user.txpPoints}</div><div className="txp-label">TXP Points</div></div>
+          <div style={{marginBottom:10}}>
+            <div className="progress-info"><span style={{fontSize:12}}>Cấp {current.name}</span><span style={{fontSize:11,color:"var(--text3)"}}>{user.txpPoints}/{current.max}</span></div>
+            <div className="progress-bar" style={{height:9}}><div className="progress-fill fill-green" style={{width:`${pct}%`}}/></div>
+          </div>
+          <div style={{fontSize:11,color:"var(--text2)",textAlign:"center"}}>Cần thêm <strong style={{color:current.color}}>{current.max-user.txpPoints} điểm</strong> để lên cấp {levelInfo[levelInfo.indexOf(current)+1]?.name||"tối đa"}</div>
+        </div>
+        <div className="card">
+          <div className="card-title">Cách kiếm điểm</div>
+          {[
+            ["Hoàn thành sản phẩm","+50 TXP"],["Bán được sản phẩm","+100 TXP"],
+            ["Tham gia sự kiện","+30 TXP"],["Đạt hạng thi đấu","+80 TXP"],
+            ["Giới thiệu bạn bè","+20 TXP"],
+            isParent?["Phụ huynh đồng hành sự kiện","+15 TXP"]:["Trở thành mentor","+200 TXP"],
+          ].map(([act,pts])=>(
+            <div key={act} style={{display:"flex",justifyContent:"space-between",padding:"9px 0",borderBottom:"1px solid var(--border)",fontSize:12}}>
+              <span>{act}</span><span style={{color:"var(--green)",fontWeight:700}}>{pts}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="card">
+        <div className="card-title">Các mốc cấp độ</div>
+        {levelInfo.map((l,i)=>(
+          <div key={l.name} style={{padding:14,background:user.txpPoints>=l.min?"rgba(34,197,94,0.05)":"var(--bg2)",borderRadius:"var(--radius)",border:`1px solid ${user.txpPoints>=l.min?"rgba(34,197,94,0.25)":"var(--border)"}`,marginBottom:10}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <span style={{fontFamily:"'Exo 2',sans-serif",fontWeight:700,fontSize:13}}>{l.name}</span>
+              {user.txpPoints>=l.min&&<span style={{display:"flex",alignItems:"center",gap:4,color:"var(--green)",fontSize:11}}><Icon.check/>Đạt được</span>}
+            </div>
+            <div style={{fontSize:11,color:"var(--text2)"}}>{i===0?"Làm quen công nghệ, lắp ráp cơ bản, học cá nhân":i===1?"Làm sản phẩm IoT, bán sản phẩm, làm việc nhóm":"Dự án robot/drone, thi đấu, trở thành mentor"}</div>
+            <div style={{fontSize:11,color:"var(--text3)",marginTop:5}}>{l.min} – {l.max} điểm</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </>;
+}
+
+function NotificationsPage({ user }) {
+  return <>
+    <div className="page-header"><div className="page-title">Thông báo</div><div className="page-sub">{user.notifications.filter(n=>!n.read).length} thông báo chưa đọc</div></div>
+    <div className="card">
+      <div className="notif-list">
+        {user.notifications.map(n=>(
+          <div key={n.id} className="notif-item">
+            <div className={`notif-dot2${n.read?" read":""}`}/>
+            <div><div className="notif-text" style={{fontWeight:n.read?400:600}}>{n.msg}</div><div className="notif-time">{n.time}</div></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </>;
+}
+
+function ChildPage({ child, parentCode }) {
+  if (!child) return <div className="card"><p style={{color:"var(--text2)"}}>Chưa liên kết tài khoản học sinh.</p></div>;
+  return <>
+    <div className="page-header"><div className="page-title">Hồ sơ học sinh</div><div className="page-sub">Thông tin chi tiết và tiến độ học tập</div></div>
+    <div className="grid-2">
+      <div>
+        <div className="card" style={{marginBottom:16}}>
+          <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:18}}>
+            <div className="avatar avatar-student" style={{width:52,height:52,fontSize:20}}>{child.name.charAt(0)}</div>
+            <div>
+              <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:18,fontWeight:800}}>{child.name}</div>
+              <div style={{fontSize:12,color:"var(--text2)",marginTop:2}}>{child.grade} · {child.school}</div>
+              <span className="badge badge-warning" style={{marginTop:5}}>{child.level}</span>
+            </div>
+          </div>
+          {[["Trung tâm",child.center],["Ngày tham gia",child.joined],["Mã học sinh",child.id.toUpperCase()],["Mã PH liên kết",parentCode.toUpperCase()],["Mã định danh",child.userCode]].map(([k,v])=>(
+            <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"9px 0",borderBottom:"1px solid var(--border)",fontSize:12}}>
+              <span style={{color:"var(--text2)"}}>{k}</span><span style={{fontWeight:600,color:"var(--green)"}}>{v}</span>
+            </div>
+          ))}
+        </div>
+        <div className="card">
+          <div className="card-title">Lịch học</div>
+          {child.schedule.map((s,i)=>(
+            <div className="schedule-item" key={i}>
+              <div style={{minWidth:76}}><div className="schedule-day">{s.day}</div><div className="schedule-time">{s.time}</div></div>
+              <div><div className="schedule-subject">{s.subject}</div><div className="schedule-room">📍 {s.room}</div></div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <div className="card" style={{marginBottom:16}}>
+          <div className="card-title">Tiến độ học tập</div>
+          {[{label:"Starter",pct:child.progress.starter,cls:"fill-green"},{label:"Creator",pct:child.progress.creator,cls:"fill-gold"},{label:"Innovator",pct:child.progress.innovator,cls:"fill-red"}].map(p=>(
+            <div className="progress-wrap" key={p.label}>
+              <div className="progress-info"><span style={{fontSize:12}}>{p.label}</span><span style={{color:"var(--text3)",fontSize:11}}>{p.pct}%</span></div>
+              <div className="progress-bar"><div className={`progress-fill ${p.cls}`} style={{width:`${p.pct}%`}}/></div>
+            </div>
+          ))}
+        </div>
+        <div className="card">
+          <div className="card-title">Sản phẩm ({child.products.length})</div>
+          {child.products.map(p=>(
+            <div key={p.id} style={{padding:"11px 0",borderBottom:"1px solid var(--border)"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{fontSize:12,fontWeight:600}}>{p.name}</div>
+                <span className={`badge ${p.status==="Đã bán"?"badge-success":p.status==="Trưng bày"?"badge-warning":"badge-muted"}`}>{p.status}</span>
+              </div>
+              <div style={{fontSize:10,color:"var(--text3)",marginTop:3,display:"flex",gap:10}}>
+                <span>📅 {p.date}</span><span>💰 {p.price}</span>
+                <span style={{display:"flex",alignItems:"center",gap:3}}><Icon.qr/>{p.qr}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </>;
+}
+
+function CentersPage() {
+  return <>
+    <div className="page-header"><div className="page-title">Quản lý trung tâm</div><div className="page-sub">TrinityX HQ → Chi nhánh → Trường học → CLB → Phòng Lab</div></div>
+    <div style={{padding:20,background:"rgba(168,85,247,0.05)",border:"1px solid rgba(168,85,247,0.2)",borderRadius:"var(--radius)",marginBottom:16,fontSize:13,color:"var(--text2)"}}>
+      ⚙️ Module quản lý trung tâm đầy đủ sẽ được triển khai theo <strong style={{color:"#c084fc"}}>MVP Phase 1</strong>. Demo hiện tại hiển thị cấu trúc dữ liệu chuẩn TRX-SRS-1.0.
+    </div>
+    <AdminOverview/>
+  </>;
+}
+
+function ReportsPage() {
+  return <>
+    <div className="page-header"><div className="page-title">Báo cáo toàn quốc</div><div className="page-sub">Tổng hợp toàn hệ thống · TrinityX HQ Admin</div></div>
+    <div style={{padding:20,background:"rgba(168,85,247,0.05)",border:"1px solid rgba(168,85,247,0.2)",borderRadius:"var(--radius)",marginBottom:16,fontSize:13,color:"var(--text2)"}}>
+      📊 Module báo cáo toàn quốc với charts/graphs sẽ được triển khai theo <strong style={{color:"#c084fc"}}>MVP Phase 2</strong>.
+    </div>
+    <div className="grid-2">
+      <div className="card">
+        <div className="card-title">Tổng quan toàn quốc</div>
+        {[["Trung tâm hoạt động","2 / 34 tỉnh mục tiêu"],["Tổng học sinh","243 HS"],["Tổng sản phẩm","70 sản phẩm"],["Tổng doanh thu","29.700.000đ"],["Doanh thu học sinh (70%)","20.790.000đ"],["Tổng sự kiện tháng này","8 sự kiện"]].map(([k,v])=>(
+          <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"9px 0",borderBottom:"1px solid var(--border)",fontSize:12}}>
+            <span style={{color:"var(--text2)"}}>{k}</span><span style={{fontWeight:600,color:"var(--green)"}}>{v}</span>
+          </div>
+        ))}
+      </div>
+      <div className="card">
+        <div className="card-title">Kế hoạch mở rộng</div>
+        {[["Phase 1 (4 tuần)","Core platform + Quản trị tổ chức"],["Phase 2 (4 tuần)","Sự kiện + Sản phẩm + Doanh thu"],["Phase 3 (4 tuần)","Thi đấu + Quỹ PH + Chatbot"],["Phase 4 (2 tuần)","Testing + Deployment + Training"]].map(([k,v])=>(
+          <div key={k} style={{padding:"9px 0",borderBottom:"1px solid var(--border)"}}>
+            <div style={{fontSize:12,fontWeight:600,color:"var(--green)",marginBottom:3}}>{k}</div>
+            <div style={{fontSize:11,color:"var(--text2)"}}>{v}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </>;
+}
+
+// ─── MENTOR/VOLUNTEER/TEACHER/MANAGER OVERVIEWS ───────────────────────────────
+function MentorOverview({ user }) {
+  const students = [
+    {name:"Nguyễn Minh Khôi",level:"Creator",project:"Hệ thống tưới cây WiFi",status:"Đang làm"},
+    {name:"Trần Bảo Long",level:"Creator",project:"Cảm biến nhiệt độ IoT",status:"Cần hỗ trợ"},
+    {name:"Lê Hà Anh",level:"Starter",project:"Đèn LED điều khiển",status:"Hoàn thành"},
+    {name:"Phạm Ngọc Mai",level:"Creator",project:"LED Matrix 8x8",status:"Review"},
+  ];
+  return <>
+    <div className="page-header">
+      <div className="page-title">Chào, {user.name}! 💡</div>
+      <div className="page-sub">Mentor · {user.centerCode} · Mã: <span style={{color:"var(--green)"}}>{user.userCode}</span></div>
+    </div>
+    <div className="cards-grid">
+      {[
+        {icon:<Icon.child/>,cls:"icon-green",val:user.studentsGuided,lbl:"HS đang hướng dẫn",color:"var(--green)"},
+        {icon:<Icon.box/>,cls:"icon-gold",val:user.projectsAdvised,lbl:"Dự án đã tư vấn"},
+        {icon:<Icon.star/>,cls:"icon-blue",val:user.txpPoints,lbl:"TXP Points"},
+        {icon:<Icon.calendar/>,cls:"icon-red",val:2,lbl:"Buổi mentoring/tuần"},
+      ].map((c,i)=>(
+        <div key={i} className="stat-card"><div className={`stat-icon ${c.cls}`}>{c.icon}</div>
+          <div><div className="stat-card-val" style={c.color?{color:c.color}:{}}>{c.val}</div><div className="stat-card-label">{c.lbl}</div></div>
+        </div>
+      ))}
+    </div>
+    <div className="grid-2">
+      <div className="card">
+        <div className="card-title">Học sinh đang hướng dẫn</div>
+        {students.map((s,i)=>(
+          <div key={i} className="user-mgmt-row">
+            <div className="avatar avatar-student" style={{width:32,height:32,fontSize:12,flexShrink:0}}>{s.name.charAt(0)}</div>
+            <div style={{flex:1}}>
+              <div style={{fontSize:12,fontWeight:600}}>{s.name}</div>
+              <div style={{fontSize:10,color:"var(--text2)"}}>{s.level} · {s.project}</div>
+            </div>
+            <span className={`badge ${s.status==="Hoàn thành"?"badge-success":s.status==="Cần hỗ trợ"?"badge-warning":"badge-muted"}`}>{s.status}</span>
+          </div>
+        ))}
+      </div>
+      <div className="card">
+        <div className="card-title">Lịch mentoring tuần này</div>
+        {user.schedule.map((s,i)=>(
+          <div className="schedule-item" key={i}>
+            <div style={{minWidth:76}}><div className="schedule-day">{s.day}</div><div className="schedule-time">{s.time}</div></div>
+            <div><div className="schedule-subject">{s.subject}</div><div className="schedule-room">{s.room}</div></div>
+          </div>
+        ))}
+        <div style={{marginTop:12,padding:12,background:"rgba(245,158,11,0.06)",borderRadius:8,border:"1px solid rgba(245,158,11,0.2)",fontSize:12}}>
+          <div style={{fontWeight:600,color:"var(--gold)",marginBottom:4}}>Chuyên môn</div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {user.expertise.map(e=><span key={e} className="badge badge-warning">{e}</span>)}
+          </div>
+        </div>
+      </div>
+    </div>
+  </>;
+}
+
+function VolunteerOverview({ user }) {
+  const myEvents = [
+    {name:"Free Tech Day 08/03",role:"Hỗ trợ kỹ thuật",status:"Sắp diễn ra",date:"08/03/2026"},
+    {name:"Maker Battle Day 15/03",role:"Truyền thông + Ghi hình",status:"Đã đăng ký",date:"15/03/2026"},
+    {name:"Free Tech Day 01/03",role:"Hỗ trợ đón khách",status:"Hoàn thành",date:"01/03/2026"},
+  ];
+  return <>
+    <div className="page-header">
+      <div className="page-title">Chào, {user.name}! 🙋</div>
+      <div className="page-sub">Cộng tác viên · {user.centerCode} · Mã: <span style={{color:"var(--green)"}}>{user.userCode}</span></div>
+    </div>
+    <div className="cards-grid">
+      {[
+        {icon:<Icon.award/>,cls:"icon-green",val:user.eventsSupported,lbl:"Sự kiện đã hỗ trợ",color:"var(--green)"},
+        {icon:<Icon.star/>,cls:"icon-gold",val:user.txpPoints,lbl:"TXP Points"},
+        {icon:<Icon.calendar/>,cls:"icon-blue",val:2,lbl:"Sự kiện sắp tới"},
+      ].map((c,i)=>(
+        <div key={i} className="stat-card"><div className={`stat-icon ${c.cls}`}>{c.icon}</div>
+          <div><div className="stat-card-val" style={c.color?{color:c.color}:{}}>{c.val}</div><div className="stat-card-label">{c.lbl}</div></div>
+        </div>
+      ))}
+    </div>
+    <div className="grid-2">
+      <div className="card">
+        <div className="card-title">Sự kiện của tôi</div>
+        {myEvents.map((e,i)=>(
+          <div key={i} className="user-mgmt-row">
+            <div style={{flex:1}}>
+              <div style={{fontSize:12,fontWeight:600}}>{e.name}</div>
+              <div style={{fontSize:10,color:"var(--text2)"}}>{e.role} · {e.date}</div>
+            </div>
+            <span className={`badge ${e.status==="Hoàn thành"?"badge-success":e.status==="Sắp diễn ra"?"badge-warning":"badge-muted"}`}>{e.status}</span>
+          </div>
+        ))}
+      </div>
+      <div className="card">
+        <div className="card-title">Công việc CTV</div>
+        {user.tasks.map((t,i)=>(
+          <div key={i} style={{display:"flex",gap:8,alignItems:"center",padding:"8px 0",borderBottom:"1px solid var(--border)",fontSize:12}}>
+            <span style={{color:"var(--green)"}}><Icon.check/></span>
+            <span style={{color:"var(--text2)"}}>{t}</span>
+          </div>
+        ))}
+        <div style={{marginTop:14,padding:10,background:"rgba(34,197,94,0.06)",borderRadius:8,border:"1px solid rgba(34,197,94,0.2)",fontSize:11,color:"var(--text2)"}}>
+          💡 CTV được tính TXP Points mỗi sự kiện hỗ trợ. Sau 10 sự kiện được xét lên làm Mentor CTV.
+        </div>
+      </div>
+    </div>
+  </>;
+}
+
+function TeacherOverview({ user }) {
+  return <>
+    <div className="page-header">
+      <div className="page-title">Chào, {user.name}! 📚</div>
+      <div className="page-sub">Giáo viên · {user.centerCode} · Mã: <span style={{color:"var(--green)"}}>{user.userCode}</span></div>
+    </div>
+    <div className="cards-grid">
+      {[
+        {icon:<Icon.child/>,cls:"icon-green",val:user.studentsManaged,lbl:"Học sinh quản lý",color:"var(--green)"},
+        {icon:<Icon.box/>,cls:"icon-gold",val:user.clubs.length,lbl:"CLB hướng dẫn"},
+        {icon:<Icon.star/>,cls:"icon-blue",val:user.txpPoints,lbl:"TXP Points"},
+      ].map((c,i)=>(
+        <div key={i} className="stat-card"><div className={`stat-icon ${c.cls}`}>{c.icon}</div>
+          <div><div className="stat-card-val" style={c.color?{color:c.color}:{}}>{c.val}</div><div className="stat-card-label">{c.lbl}</div></div>
+        </div>
+      ))}
+    </div>
+    <div className="card">
+      <div className="card-title">CLB đang hướng dẫn</div>
+      {user.clubs.map((club,i)=>(
+        <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"11px 0",borderBottom:"1px solid var(--border)"}}>
+          <div style={{display:"flex",gap:10,alignItems:"center"}}>
+            <span style={{fontSize:18}}>🏫</span>
+            <div><div style={{fontSize:13,fontWeight:600}}>{club}</div><div style={{fontSize:10,color:"var(--text3)"}}>{user.centerCode}</div></div>
+          </div>
+          <span className="badge badge-success">Đang hoạt động</span>
+        </div>
+      ))}
+    </div>
+  </>;
+}
+
+function DirectorOverview({ user }) {
+  const isHQ = user.centerCode==="TRX-HN01";
+  const centerName = isHQ ? "TrinityX HQ – Hapu" : "TrinityX Chi nhánh Đông Anh";
+  const staff = Object.values(MOCK_USERS).filter(u=>u.role==="staff"&&u.centerCode===user.centerCode);
+  return <>
+    <div className="page-header">
+      <div className="page-title">Chào, {user.name}! 🏢</div>
+      <div className="page-sub">{user.title||"Giám đốc"} · <span style={{color:"var(--gold)"}}>{centerName}</span> · Mã: {user.userCode}</div>
+    </div>
+    <div className="cards-grid">
+      {[
+        {icon:<Icon.child/>,cls:"icon-green",val:isHQ?145:98,lbl:"Học sinh",color:"var(--green)"},
+        {icon:<Icon.box/>,cls:"icon-gold",val:isHQ?42:28,lbl:"Sản phẩm"},
+        {icon:<Icon.chart/>,cls:"icon-red",val:isHQ?"18.5M":"11.2M",lbl:"Doanh thu"},
+        {icon:<Icon.user/>,cls:"icon-purple",val:isHQ?12:8,lbl:"Nhân sự TT"},
+      ].map((c,i)=>(
+        <div key={i} className="stat-card"><div className={`stat-icon ${c.cls}`}>{c.icon}</div>
+          <div><div className="stat-card-val" style={c.color?{color:c.color}:{}}>{c.val}</div><div className="stat-card-label">{c.lbl}</div></div>
+        </div>
+      ))}
+    </div>
+    <div className="grid-2">
+      <div className="card" style={{marginBottom:16}}>
+        <div className="card-title">Nhân viên trung tâm</div>
+        {staff.length > 0 ? staff.map(s=>(
+          <div key={s.id} className="user-mgmt-row">
+            <div className={`avatar avatar-staff`} style={{width:32,height:32,fontSize:11,background:"linear-gradient(135deg,#0369a1,#0ea5e9)",color:"#fff",flexShrink:0}}>{s.name.charAt(0)}</div>
+            <div style={{flex:1}}>
+              <div style={{fontSize:12,fontWeight:600}}>{s.name}</div>
+              <div style={{fontSize:10,color:"var(--text2)"}}>{s.title} · {s.userCode}</div>
+            </div>
+            <span style={{fontSize:9,padding:"2px 7px",borderRadius:8,background:"rgba(34,197,94,0.1)",color:"var(--green)",fontWeight:700}}>Đang làm việc</span>
+          </div>
+        )) : (
+          <div style={{color:"var(--text3)",fontSize:12,padding:"12px 0",textAlign:"center"}}>
+            Nhân viên cùng trung tâm sẽ hiển thị ở đây
+          </div>
+        )}
+      </div>
+      <div className="card">
+        <div className="card-title">Thông tin trung tâm</div>
+        {[
+          ["Mã trung tâm", user.centerCode],
+          ["Tên cơ sở", centerName],
+          ["Loại", isHQ?"Trụ sở chính (HQ)":"Chi nhánh"],
+          ["Giám đốc", user.name],
+          ["SĐT GĐ", user.phone],
+          ["Email", user.email],
+        ].map(([k,v])=>(
+          <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--border)",fontSize:11}}>
+            <span style={{color:"var(--text2)"}}>{k}</span><span style={{fontWeight:600,color:"var(--text)"}}>{v}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </>;
+}
+
+function StaffOverview({ user }) {
+  const staffRoleNames = {admin_staff:"Nhân viên Hành chính",tech_staff:"Nhân viên Kỹ thuật",sales_staff:"Nhân viên Bán hàng",warehouse_staff:"Quản lý Kho"};
+  const staffTasks = {
+    admin_staff:["Quản lý hồ sơ học sinh","Xử lý thanh toán học phí","Chuẩn bị giấy tờ sự kiện","Lưu trữ tài liệu"],
+    tech_staff:["Bảo trì thiết bị Lab","Hỗ trợ kỹ thuật học sinh","Kiểm tra vật tư IoT","Cài đặt phần mềm"],
+    sales_staff:["Tư vấn học sinh đăng ký","Quản lý TrinityX Store","Xử lý đơn hàng","Báo cáo doanh thu"],
+    warehouse_staff:["Kiểm kê vật tư","Nhập/xuất linh kiện","Quản lý thiết bị cho mượn","Báo cáo tồn kho"],
+  };
+  const tasks = staffTasks[user.staffRole]||[];
+  return <>
+    <div className="page-header">
+      <div className="page-title">Chào, {user.name}! 👔</div>
+      <div className="page-sub">{user.title} · {user.centerCode} · Mã: {user.userCode}</div>
+    </div>
+    <div className="grid-2">
+      <div className="card" style={{marginBottom:16}}>
+        <div className="card-title">Thông tin của tôi</div>
+        {[["Họ và tên",user.name],["Vị trí",user.title],["Trung tâm",user.center||user.centerCode],["Email",user.email],["SĐT",user.phone],["Ngày vào làm",user.joined],["Mã NV",user.userCode]].map(([k,v])=>(
+          <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--border)",fontSize:11}}>
+            <span style={{color:"var(--text2)"}}>{k}</span><span style={{fontWeight:600}}>{v}</span>
+          </div>
+        ))}
+      </div>
+      <div className="card">
+        <div className="card-title">Công việc phụ trách</div>
+        {tasks.map((t,i)=>(
+          <div key={i} style={{display:"flex",gap:8,alignItems:"center",padding:"9px 0",borderBottom:"1px solid var(--border)",fontSize:12}}>
+            <span style={{color:"var(--green)",flexShrink:0}}><Icon.check/></span>
+            <span style={{color:"var(--text2)"}}>{t}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </>;
+}
+
+function MentoringPage({ user }) {
+  return <>
+    <div className="page-header"><div className="page-title">Học sinh của tôi</div><div className="page-sub">Danh sách và tiến độ học sinh đang được mentor</div></div>
+    <div className="card"><div style={{fontSize:13,color:"var(--text2)",padding:"20px 0",textAlign:"center"}}>📋 Danh sách học sinh đang được mentor đầy đủ sẽ được tích hợp từ hệ thống quản lý trung tâm.</div></div>
+  </>;
+}
+
+function ClubsPage({ user }) {
+  return <>
+    <div className="page-header"><div className="page-title">CLB của tôi</div><div className="page-sub">Quản lý câu lạc bộ và danh sách thành viên</div></div>
+    <div className="card">
+      {user.clubs?.map((club,i)=>(
+        <div key={i} style={{padding:"16px 0",borderBottom:"1px solid var(--border)"}}>
+          <div style={{fontWeight:700,fontSize:14,marginBottom:6}}>{club}</div>
+          <div style={{display:"flex",gap:10,fontSize:11,color:"var(--text2)"}}>
+            <span>👥 18 thành viên</span><span>📅 2 buổi/tuần</span><span>🟢 Đang hoạt động</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </>;
+}
+
+// ─── USER MANAGEMENT PAGE ─────────────────────────────────────────────────────
+function UserManagementPage({ directorMode, managerMode, centerCode, pendingData, onUpdatePending, createdUsersData, onUpdateCreatedUsers }) {
+  const [pendingList, setPendingList] = useState(pendingData || INITIAL_PENDING);
+  const [activeTab, setActiveTab] = useState("pending");
+  const [showCreate, setShowCreate] = useState(false);
+  const [createForm, setCreateForm] = useState({name:"",email:"",phone:"",role:"student",center:"TRX-HN02",password:""});
+  const [createdUsers, setCreatedUsers] = useState(createdUsersData || []);
+  const [editPw, setEditPw] = useState(null);
+  const [newPw, setNewPw] = useState("");
+  const roleLabels = {
+    student:"Học sinh", parent:"Phụ huynh", mentor:"Mentor",
+    volunteer:"CTV", teacher:"Thầy/Cô", manager:"Quản lý vận hành",
+    director:"Giám đốc", admin_staff:"NV Hành chính",
+    tech_staff:"NV Kỹ thuật", sales_staff:"NV Bán hàng", warehouse_staff:"Quản lý Kho",
+    parent_volunteer:"Phụ huynh TN",
+  };
+  const staffRoles = ["director","admin_staff","tech_staff","sales_staff","warehouse_staff","teacher","mentor","volunteer","manager"];  const pending = pendingList.filter(p=>p.status==="pending");
+  const all = pendingList.filter(p=>p.status!=="pending");
+
+  const approve = (id) => {
+    const newList = pendingList.map(p=>p.id===id?{...p,status:"approved"}:p);
+    setPendingList(newList);
+    if(onUpdatePending) onUpdatePending(newList);
+  };
+  const reject = (id) => {
+    const newList = pendingList.map(p=>p.id===id?{...p,status:"rejected"}:p);
+    setPendingList(newList);
+    if(onUpdatePending) onUpdatePending(newList);
+  };
+  const createUser = () => {
+    const code = createForm.role.slice(0,2)+String(Math.floor(Math.random()*900)+100);
+    const newU = {...createForm,id:code,userCode:`TRX-${createForm.role.toUpperCase().slice(0,3)}-${code}`,created:new Date().toLocaleDateString("vi-VN")};
+    const newList = [newU,...createdUsers];
+    setCreatedUsers(newList);
+    if(onUpdateCreatedUsers) onUpdateCreatedUsers(newList);
+    setShowCreate(false);
+    setCreateForm({name:"",email:"",phone:"",role:"student",center:"TRX-HN02",password:""});
+  };
+
+  return <>
+    <div className="page-header">
+      <div className="page-title">Quản lý nhân sự & người dùng</div>
+      <div className="page-sub">{directorMode ? `Trung tâm ${centerCode||""} · Phê duyệt đăng ký, tạo & quản lý tài khoản` : "Admin hệ thống · Toàn bộ người dùng · Phê duyệt & cấp quyền"}</div>
+    </div>
+    <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap",alignItems:"center"}}>
+      {[["pending",`Chờ duyệt (${pending.length})`],["all","Đã xử lý"],["created","Tài khoản đã tạo"]].map(([id,lbl])=>(
+        <button key={id} className={`filter-btn${activeTab===id?" active":""}`} onClick={()=>setActiveTab(id)}>{lbl}</button>
+      ))}
+      <button className="btn btn-primary btn-sm" style={{marginLeft:"auto"}} onClick={()=>setShowCreate(true)}>+ Tạo tài khoản mới</button>
+    </div>
+
+    {activeTab==="pending" && (
+      <div className="card">
+        <div className="card-title">Yêu cầu đăng ký chờ phê duyệt
+          {pending.length>0 && <span style={{background:"var(--red)",color:"#fff",padding:"1px 8px",borderRadius:10,fontSize:10,fontWeight:700}}>{pending.length} mới</span>}
+        </div>
+        {pending.length===0 ? (
+          <div style={{textAlign:"center",padding:"32px 0",color:"var(--text3)",fontSize:13}}>✅ Không có đăng ký chờ duyệt</div>
+        ) : (
+          pending.map(p=>(
+            <div key={p.id} className="user-mgmt-row">
+              <div className="avatar avatar-student" style={{width:36,height:36,fontSize:13,flexShrink:0}}>{p.name.charAt(0)}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:3,flexWrap:"wrap"}}>
+                  <span style={{fontSize:13,fontWeight:600}}>{p.name}</span>
+                  <span className={`role-chip role-${p.role==="parent_volunteer"?"volunteer":p.role}`}>{roleLabels[p.role==="parent_volunteer"?"volunteer":p.role]||p.role}</span>
+                </div>
+                <div style={{fontSize:11,color:"var(--text2)"}}>{p.email} · {p.phone} · {p.center}</div>
+                <div style={{fontSize:11,color:"var(--text3)",marginTop:2,fontStyle:"italic"}}>"{p.msg}"</div>
+              </div>
+              <div style={{display:"flex",gap:6,flexShrink:0}}>
+                <button className="action-btn action-approve" onClick={()=>approve(p.id)}>✅ Duyệt</button>
+                <button className="action-btn action-reject" onClick={()=>reject(p.id)}>❌ Từ chối</button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    )}
+
+    {activeTab==="all" && (
+      <div className="card">
+        <div className="card-title">Lịch sử xử lý đăng ký</div>
+        {all.map(p=>(
+          <div key={p.id} className="user-mgmt-row">
+            <div className="avatar avatar-student" style={{width:32,height:32,fontSize:11,flexShrink:0}}>{p.name.charAt(0)}</div>
+            <div style={{flex:1}}>
+              <div style={{fontSize:12,fontWeight:600}}>{p.name}</div>
+              <div style={{fontSize:10,color:"var(--text2)"}}>{roleLabels[p.role]||p.role} · {p.center} · {p.date}</div>
+            </div>
+            <span className={`pending-badge pending-status-${p.status}`}>{p.status==="approved"?"✅ Đã duyệt":"❌ Từ chối"}</span>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {activeTab==="created" && (
+      <div className="card">
+        <div className="card-title">Tài khoản đã tạo thủ công</div>
+        {createdUsers.length===0 ? (
+          <div style={{textAlign:"center",padding:"32px 0",color:"var(--text3)",fontSize:13}}>Chưa có tài khoản nào được tạo thủ công</div>
+        ) : (
+          createdUsers.map((u,i)=>(
+            <div key={i} className="user-mgmt-row">
+              <div className="avatar avatar-student" style={{width:32,height:32,fontSize:11,flexShrink:0}}>{u.name.charAt(0)}</div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:12,fontWeight:600}}>{u.name}</div>
+                <div style={{fontSize:10,color:"var(--text2)"}}>{u.id} · {u.email} · {u.center}</div>
+              </div>
+              <div style={{display:"flex",gap:5}}>
+                <button className="action-btn action-edit" onClick={()=>{setEditPw(u);setNewPw("");}}>✏️ Đổi mật khẩu</button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    )}
+
+    {/* Create user modal */}
+    {showCreate && (
+      <div className="create-user-modal" onClick={()=>setShowCreate(false)}>
+        <div className="create-user-box" onClick={e=>e.stopPropagation()}>
+          <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:18,fontWeight:800,marginBottom:20}}>+ Tạo tài khoản mới</div>
+          {[["name","Họ và tên","text"],["email","Email","email"],["phone","Số điện thoại","text"],["password","Mật khẩu tạm","text"]].map(([k,lbl,type])=>(
+            <div key={k} className="form-group">
+              <label className="form-label">{lbl}</label>
+              <input className="form-input" type={type} value={createForm[k]} onChange={e=>setCreateForm(f=>({...f,[k]:e.target.value}))}/>
+            </div>
+          ))}
+          <div className="form-group">
+            <label className="form-label">Vai trò</label>
+            <select className="form-input" value={createForm.role} onChange={e=>setCreateForm(f=>({...f,role:e.target.value}))}>
+              <optgroup label="— Nhân sự TrinityX —">
+                <option value="director">Giám đốc</option>
+                <option value="admin_staff">NV Hành chính</option>
+                <option value="tech_staff">NV Kỹ thuật</option>
+                <option value="sales_staff">NV Bán hàng</option>
+                <option value="warehouse_staff">Quản lý Kho</option>
+              </optgroup>
+              <optgroup label="— Chương trình học —">
+                <option value="teacher">Thầy/Cô hướng dẫn CLB</option>
+                <option value="mentor">Mentor</option>
+                <option value="volunteer">CTV tình nguyện</option>
+              </optgroup>
+              <optgroup label="— Học viên —">
+                <option value="student">Học sinh</option>
+                <option value="parent">Phụ huynh</option>
+              </optgroup>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Trung tâm</label>
+            <select className="form-input" value={createForm.center} onChange={e=>setCreateForm(f=>({...f,center:e.target.value}))}>
+              <option value="TRX-HN01">TrinityX Thanh Xuân</option>
+              <option value="TRX-HN02">TrinityX Đông Anh</option>
+            </select>
+          </div>
+          <div style={{display:"flex",gap:8,marginTop:4}}>
+            <button className="btn btn-ghost btn-full" onClick={()=>setShowCreate(false)}>Hủy</button>
+            <button className="btn btn-primary btn-full" onClick={createUser} disabled={!createForm.name||!createForm.email||!createForm.password}>Tạo tài khoản</button>
+          </div>
+          <div style={{fontSize:10,color:"var(--text3)",marginTop:10,textAlign:"center"}}>Sau khi tạo, hệ thống sẽ gửi thông tin đăng nhập qua email của người dùng.</div>
+        </div>
+      </div>
+    )}
+
+    {/* Change password modal */}
+    {editPw && (
+      <div className="create-user-modal" onClick={()=>setEditPw(null)}>
+        <div className="create-user-box" style={{maxHeight:"unset",padding:24}} onClick={e=>e.stopPropagation()}>
+          <div style={{fontFamily:"'Exo 2',sans-serif",fontSize:16,fontWeight:800,marginBottom:16}}>✏️ Đổi mật khẩu — {editPw.name}</div>
+          <div className="form-group">
+            <label className="form-label">Mật khẩu mới</label>
+            <input className="form-input" type="text" value={newPw} onChange={e=>setNewPw(e.target.value)} placeholder="Nhập mật khẩu mới"/>
+          </div>
+          <div style={{display:"flex",gap:8,marginTop:4}}>
+            <button className="btn btn-ghost btn-full" onClick={()=>setEditPw(null)}>Hủy</button>
+            <button className="btn btn-primary btn-full" disabled={!newPw} onClick={()=>{alert(`✅ Đã đổi mật khẩu cho ${editPw.name}`);setEditPw(null);}}>Lưu mật khẩu</button>
+          </div>
+        </div>
+      </div>
+    )}
+  </>;
+}
+
+// ─── LOCAL STORAGE HELPERS ────────────────────────────────────────────────────
+const LS = {
+  get: (key, fallback) => {
+    try { const v = localStorage.getItem("trx_"+key); return v ? JSON.parse(v) : fallback; }
+    catch { return fallback; }
+  },
+  set: (key, val) => {
+    try { localStorage.setItem("trx_"+key, JSON.stringify(val)); } catch {}
+  },
+};
+
+// ─── APP ROOT ─────────────────────────────────────────────────────────────────
+function App() {
+  const [page, setPage] = useState("landing");
+  const [user, setUser] = useState(null);
+  const [usersData, setUsersData] = useState(()=>LS.get("users_data",{}));
+  const [pendingData, setPendingData] = useState(()=>LS.get("pending_data", INITIAL_PENDING));
+  const [createdUsersData, setCreatedUsersData] = useState(()=>LS.get("created_users",[]));
+
+  useEffect(()=>{
+    const style = document.createElement("style");
+    style.textContent = css;
+    document.head.appendChild(style);
+    // Khôi phục session
+    const savedUserId = LS.get("current_user_id", null);
+    if (savedUserId) {
+      const savedUser = LS.get("users_data",{})[savedUserId] || MOCK_USERS[savedUserId];
+      if (savedUser) { setUser(savedUser); setPage("dashboard"); }
+    }
+    return ()=>document.head.removeChild(style);
+  },[]);
+
+  const handleLogin = (u) => {
+    const saved = LS.get("users_data",{})[u.id];
+    const mergedUser = saved ? {...u,...saved} : u;
+    LS.set("current_user_id", u.id);
+    setUser(mergedUser);
+    setPage("dashboard");
+  };
+
+  const handleLogout = () => {
+    LS.set("current_user_id", null);
+    setUser(null);
+    setPage("landing");
+  };
+
+  const updateUser = (updatedUser) => {
+    const data = LS.get("users_data",{});
+    data[updatedUser.id] = updatedUser;
+    LS.set("users_data", data);
+    setUsersData(data);
+    setUser(updatedUser);
+  };
+
+  const updatePending = (newList) => {
+    LS.set("pending_data", newList);
+    setPendingData(newList);
+  };
+
+  const updateCreatedUsers = (newList) => {
+    LS.set("created_users", newList);
+    setCreatedUsersData(newList);
+  };
+
+  if (page==="dashboard"&&user) return <Dashboard user={user} onLogout={handleLogout} onNavigate={setPage} onUpdateUser={updateUser} pendingData={pendingData} onUpdatePending={updatePending} createdUsersData={createdUsersData} onUpdateCreatedUsers={updateCreatedUsers}/>;
+  if (page==="login") return <LoginPage onLogin={handleLogin} onNavigate={setPage}/>;
+  if (page==="register") return <RegisterPage onNavigate={setPage} onUpdatePending={updatePending} pendingData={pendingData}/>;
+  if (page==="store") return <StorePage onNavigate={setPage}/>;
+  return <Landing onNavigate={setPage}/>;
+}
+
+// Mount React app
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(React.createElement(App));
+root.render(<App />);
+  </script>
+</body>
+</html>
