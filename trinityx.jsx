@@ -971,7 +971,7 @@ function LoginPage({ onLogin, onNavigate }) {
   );
 }
 
-function RegisterPage({ onNavigate }) {
+function RegisterPage({ onNavigate, onUpdatePending, pendingData }) {
   const [step, setStep] = useState(1); const [role, setRole] = useState("student");
   const [form, setForm] = useState({name:"",email:"",phone:"",center:"TRX-HN02",parentCode:"",password:"",confirm:""});
   const [success, setSuccess] = useState(false);
@@ -1017,7 +1017,13 @@ function RegisterPage({ onNavigate }) {
             </div>
             <div style={{display:"flex",gap:8}}>
               <button className="btn btn-ghost btn-full" onClick={()=>setStep(1)}>← Quay lại</button>
-              <button className="btn btn-primary btn-full" onClick={()=>setSuccess(true)} disabled={!form.password||form.password!==form.confirm}>Đăng ký</button>
+              <button className="btn btn-primary btn-full" onClick={()=>{
+                if(onUpdatePending && pendingData) {
+                  const newEntry = {id:"p"+Date.now(),name:form.name,role,email:form.email,phone:form.phone,center:form.center,msg:"Đăng ký qua form",date:new Date().toLocaleDateString("vi-VN"),status:"pending"};
+                  onUpdatePending([...(pendingData||[]), newEntry]);
+                }
+                setSuccess(true);
+              }} disabled={!form.password||form.password!==form.confirm}>Đăng ký</button>
             </div>
           </>}
           <div className="auth-footer">Đã có tài khoản? <a onClick={()=>onNavigate("login")}>Đăng nhập</a></div>
@@ -1208,7 +1214,7 @@ function StorePage({ onNavigate }) {
 
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
-function Dashboard({ user, onLogout, onNavigate }) {
+function Dashboard({ user, onLogout, onNavigate, onUpdateUser, pendingData, onUpdatePending, createdUsersData, onUpdateCreatedUsers }) {
   const [page, setPage] = useState("overview");
   const [sideOpen, setSideOpen] = useState(false);
   const isStudent = user.role==="student";
@@ -1313,12 +1319,12 @@ function Dashboard({ user, onLogout, onNavigate }) {
     if (page==="points") return <PointsPage user={isParent&&MOCK_USERS[user.childCode]?MOCK_USERS[user.childCode]:user} isParent={isParent}/>;
     if (page==="notifications") return <NotificationsPage user={user}/>;
     if (page==="child" && isParent) return <ChildPage child={MOCK_USERS[user.childCode]} parentCode={user.id}/>;
-    if (page==="fund" && isParent) return <FundPage user={user}/>;
+    if (page==="fund" && isParent) return <FundPage user={user} onUpdateUser={onUpdateUser}/>;
     if (page==="store") return <StorePage/>;
     if (page==="centers") return <CentersPage/>;
     if (page==="reports") return <ReportsPage/>;
-    if (page==="usermgmt") return <UserManagementPage directorMode={isDirector} centerCode={user.centerCode}/>;
-    if (page==="users") return <UserManagementPage directorMode managerMode centerCode={user.centerCode}/>;
+    if (page==="usermgmt") return <UserManagementPage directorMode={isDirector} centerCode={user.centerCode} pendingData={pendingData} onUpdatePending={onUpdatePending} createdUsersData={createdUsersData} onUpdateCreatedUsers={onUpdateCreatedUsers}/>;
+    if (page==="users") return <UserManagementPage directorMode managerMode centerCode={user.centerCode} pendingData={pendingData} onUpdatePending={onUpdatePending} createdUsersData={createdUsersData} onUpdateCreatedUsers={onUpdateCreatedUsers}/>;
     if (page==="mentoring") return <MentoringPage user={user}/>;
     if (page==="clubs") return <ClubsPage user={user}/>;
     return null;
@@ -1562,8 +1568,14 @@ function AdminOverview() {
   ];
   return <>
     <div className="page-header">
-      <div className="page-title">TrinityX OS — Dashboard Admin 🏢</div>
-      <div className="page-sub">Admin hệ thống · PGS.TS. Doãn Ngọc Hải · Chủ sở hữu mô hình TrinityX</div>    </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:10}}>
+        <div>
+          <div className="page-title">TrinityX OS — Dashboard Admin 🏢</div>
+          <div className="page-sub">Admin hệ thống · PGS.TS. Doãn Ngọc Hải · Chủ sở hữu mô hình TrinityX</div>
+        </div>
+        <button className="btn btn-sm" style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",color:"var(--red)",fontSize:11}} onClick={()=>{if(confirm("Xóa toàn bộ dữ liệu thử nghiệm và reset về mặc định?")){Object.keys(localStorage).filter(k=>k.startsWith("trx_")).forEach(k=>localStorage.removeItem(k));window.location.reload();}}}>🗑️ Reset dữ liệu test</button>
+      </div>
+    </div>
     <div className="cards-grid">
       {[
         {icon:<Icon.settings/>,cls:"icon-purple",val:2,lbl:"Cơ sở hoạt động",color:"#c084fc"},
@@ -2315,12 +2327,12 @@ function ClubsPage({ user }) {
 }
 
 // ─── USER MANAGEMENT PAGE ─────────────────────────────────────────────────────
-function UserManagementPage({ directorMode, managerMode, centerCode }) {
-  const [pendingList, setPendingList] = useState(INITIAL_PENDING);
+function UserManagementPage({ directorMode, managerMode, centerCode, pendingData, onUpdatePending, createdUsersData, onUpdateCreatedUsers }) {
+  const [pendingList, setPendingList] = useState(pendingData || INITIAL_PENDING);
   const [activeTab, setActiveTab] = useState("pending");
   const [showCreate, setShowCreate] = useState(false);
   const [createForm, setCreateForm] = useState({name:"",email:"",phone:"",role:"student",center:"TRX-HN02",password:""});
-  const [createdUsers, setCreatedUsers] = useState([]);
+  const [createdUsers, setCreatedUsers] = useState(createdUsersData || []);
   const [editPw, setEditPw] = useState(null);
   const [newPw, setNewPw] = useState("");
   const roleLabels = {
@@ -2333,12 +2345,22 @@ function UserManagementPage({ directorMode, managerMode, centerCode }) {
   const staffRoles = ["director","admin_staff","tech_staff","sales_staff","warehouse_staff","teacher","mentor","volunteer","manager"];  const pending = pendingList.filter(p=>p.status==="pending");
   const all = pendingList.filter(p=>p.status!=="pending");
 
-  const approve = (id) => setPendingList(list=>list.map(p=>p.id===id?{...p,status:"approved"}:p));
-  const reject = (id) => setPendingList(list=>list.map(p=>p.id===id?{...p,status:"rejected"}:p));
+  const approve = (id) => {
+    const newList = pendingList.map(p=>p.id===id?{...p,status:"approved"}:p);
+    setPendingList(newList);
+    if(onUpdatePending) onUpdatePending(newList);
+  };
+  const reject = (id) => {
+    const newList = pendingList.map(p=>p.id===id?{...p,status:"rejected"}:p);
+    setPendingList(newList);
+    if(onUpdatePending) onUpdatePending(newList);
+  };
   const createUser = () => {
     const code = createForm.role.slice(0,2)+String(Math.floor(Math.random()*900)+100);
     const newU = {...createForm,id:code,userCode:`TRX-${createForm.role.toUpperCase().slice(0,3)}-${code}`,created:new Date().toLocaleDateString("vi-VN")};
-    setCreatedUsers(u=>[newU,...u]);
+    const newList = [newU,...createdUsers];
+    setCreatedUsers(newList);
+    if(onUpdateCreatedUsers) onUpdateCreatedUsers(newList);
     setShowCreate(false);
     setCreateForm({name:"",email:"",phone:"",role:"student",center:"TRX-HN02",password:""});
   };
@@ -2489,21 +2511,73 @@ function UserManagementPage({ directorMode, managerMode, centerCode }) {
   </>;
 }
 
+// ─── LOCAL STORAGE HELPERS ────────────────────────────────────────────────────
+const LS = {
+  get: (key, fallback) => {
+    try { const v = localStorage.getItem("trx_"+key); return v ? JSON.parse(v) : fallback; }
+    catch { return fallback; }
+  },
+  set: (key, val) => {
+    try { localStorage.setItem("trx_"+key, JSON.stringify(val)); } catch {}
+  },
+};
+
 // ─── APP ROOT ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [page, setPage] = useState("landing");
   const [user, setUser] = useState(null);
+  const [usersData, setUsersData] = useState(()=>LS.get("users_data",{}));
+  const [pendingData, setPendingData] = useState(()=>LS.get("pending_data", INITIAL_PENDING));
+  const [createdUsersData, setCreatedUsersData] = useState(()=>LS.get("created_users",[]));
+
   useEffect(()=>{
     const style = document.createElement("style");
     style.textContent = css;
     document.head.appendChild(style);
+    // Khôi phục session
+    const savedUserId = LS.get("current_user_id", null);
+    if (savedUserId) {
+      const savedUser = LS.get("users_data",{})[savedUserId] || MOCK_USERS[savedUserId];
+      if (savedUser) { setUser(savedUser); setPage("dashboard"); }
+    }
     return ()=>document.head.removeChild(style);
   },[]);
-  const handleLogin = (u) => { setUser(u); setPage("dashboard"); };
-  const handleLogout = () => { setUser(null); setPage("landing"); };
-  if (page==="dashboard"&&user) return <Dashboard user={user} onLogout={handleLogout} onNavigate={setPage}/>;
+
+  const handleLogin = (u) => {
+    const saved = LS.get("users_data",{})[u.id];
+    const mergedUser = saved ? {...u,...saved} : u;
+    LS.set("current_user_id", u.id);
+    setUser(mergedUser);
+    setPage("dashboard");
+  };
+
+  const handleLogout = () => {
+    LS.set("current_user_id", null);
+    setUser(null);
+    setPage("landing");
+  };
+
+  const updateUser = (updatedUser) => {
+    const data = LS.get("users_data",{});
+    data[updatedUser.id] = updatedUser;
+    LS.set("users_data", data);
+    setUsersData(data);
+    setUser(updatedUser);
+  };
+
+  const updatePending = (newList) => {
+    LS.set("pending_data", newList);
+    setPendingData(newList);
+  };
+
+  const updateCreatedUsers = (newList) => {
+    LS.set("created_users", newList);
+    setCreatedUsersData(newList);
+  };
+
+  if (page==="dashboard"&&user) return <Dashboard user={user} onLogout={handleLogout} onNavigate={setPage} onUpdateUser={updateUser} pendingData={pendingData} onUpdatePending={updatePending} createdUsersData={createdUsersData} onUpdateCreatedUsers={updateCreatedUsers}/>;
   if (page==="login") return <LoginPage onLogin={handleLogin} onNavigate={setPage}/>;
-  if (page==="register") return <RegisterPage onNavigate={setPage}/>;
+  if (page==="register") return <RegisterPage onNavigate={setPage} onUpdatePending={updatePending} pendingData={pendingData}/>;
   if (page==="store") return <StorePage onNavigate={setPage}/>;
   return <Landing onNavigate={setPage}/>;
 }
